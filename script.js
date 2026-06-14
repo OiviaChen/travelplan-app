@@ -152,6 +152,7 @@ const finalCreateButton = document.getElementById("finalCreateButton");
 const tripTitleInput = document.getElementById("tripTitleInput");
 const tripIndexButton = document.getElementById("tripIndexButton");
 const headerBackButton = document.getElementById("headerBackButton");
+const desktopRouteIndexQuery = window.matchMedia("(min-width: 1100px)");
 
 sourceText.value = sampleTripText;
 
@@ -178,6 +179,10 @@ document.querySelectorAll("[data-go]").forEach((button) => {
 tripIndexButton.addEventListener("click", () => {
   appState.isTripIndexOpen = !appState.isTripIndexOpen;
   renderPuzzleEditor();
+});
+
+desktopRouteIndexQuery.addEventListener("change", () => {
+  if (appState.screen === "trip") renderPuzzleEditor();
 });
 
 headerBackButton.addEventListener("click", () => {
@@ -298,7 +303,7 @@ function renderPuzzleEditor() {
 }
 
 function renderTripIndexPanel() {
-  if (!appState.isTripIndexOpen) return "";
+  if (!shouldShowTripIndex()) return "";
   return `
     <aside class="trip-index-panel" aria-label="路线目录">
       <p>路线目录</p>
@@ -312,6 +317,10 @@ function renderTripIndexPanel() {
       </div>
     </aside>
   `;
+}
+
+function shouldShowTripIndex() {
+  return appState.screen === "trip" && (appState.isTripIndexOpen || desktopRouteIndexQuery.matches);
 }
 
 function renderPuzzleRow(step, index) {

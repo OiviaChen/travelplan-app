@@ -10,11 +10,10 @@ body {
   background: #f1f1f1;
   color: #111;
   font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  overflow-x: hidden;
 }
 
 body {
-  display: flex;
-  justify-content: center;
   padding: 0;
 }
 
@@ -33,9 +32,10 @@ button {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 390px;
+  max-width: none;
   min-height: 100vh;
   min-height: 100dvh;
+  margin: 0;
   background: #fff;
 }
 
@@ -108,7 +108,7 @@ button {
 .screen {
   display: none;
   min-height: 100%;
-  padding: 16px 20px 112px;
+  padding: 16px max(16px, env(safe-area-inset-left)) 112px max(16px, env(safe-area-inset-right));
 }
 
 .screen.is-active {
@@ -175,9 +175,10 @@ input {
 
 .puzzle-row {
   display: grid;
-  grid-template-columns: 70px minmax(0, 1fr);
+  grid-template-columns: minmax(56px, 72px) minmax(0, 1fr);
   min-height: 166px;
   scroll-margin: 118px;
+  min-width: 0;
 }
 
 .puzzle-row.is-focused .location-piece,
@@ -191,6 +192,7 @@ input {
   display: flex;
   align-items: center;
   padding: 0 8px 0 6px;
+  min-width: 0;
   border-radius: 14px 0 0 14px;
   background: #e8e8e8;
 }
@@ -214,6 +216,7 @@ input {
   z-index: 3;
   color: #8b8b8b;
   font-weight: 700;
+  min-width: 0;
 }
 
 .location-piece {
@@ -226,6 +229,7 @@ input {
   border-radius: 0 14px 14px 0;
   background: #bdbdbd;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  min-width: 0;
 }
 
 .delete-step-button {
@@ -253,6 +257,8 @@ input {
   padding-right: 34px;
   font-size: 20px;
   font-weight: 800;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .piece-details {
@@ -318,9 +324,9 @@ input {
 
 .trip-index-panel {
   position: fixed;
-  right: max(20px, calc((100vw - 390px) / 2 + 20px));
+  right: max(16px, env(safe-area-inset-right));
   bottom: calc(76px + env(safe-area-inset-bottom));
-  left: max(20px, calc((100vw - 390px) / 2 + 20px));
+  left: max(16px, env(safe-area-inset-left));
   z-index: 9;
   display: grid;
   gap: 8px;
@@ -592,7 +598,7 @@ input {
   position: sticky;
   bottom: 0;
   z-index: 5;
-  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px max(16px, env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-right));
   background: rgba(255, 255, 255, 0.96);
 }
 
@@ -661,15 +667,110 @@ input {
   color: #fff;
 }
 
-@media (min-width: 430px) {
+@media (min-width: 768px) {
   body {
     padding: 24px 0;
   }
 
   .app-shell {
+    max-width: 720px;
     min-height: calc(100vh - 48px);
+    margin: 0 auto;
     border: 1px solid #e2e2e2;
-    border-radius: 24px;
+    border-radius: 18px;
     overflow: hidden;
+  }
+
+  .app-header {
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+
+  .screen {
+    padding: 24px 28px 124px;
+  }
+
+  .puzzle-board {
+    gap: 12px;
+  }
+
+  .puzzle-row {
+    grid-template-columns: 88px minmax(0, 1fr);
+    min-height: 176px;
+  }
+
+  .location-piece {
+    padding: 28px 24px 22px 36px;
+  }
+
+  .piece-details p,
+  .piece-details small,
+  .piece-details em {
+    font-size: 13px;
+  }
+
+  .trip-index-panel {
+    right: calc((100vw - 720px) / 2 + 28px);
+    left: calc((100vw - 720px) / 2 + 28px);
+  }
+
+  .app-bottom-bar {
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+}
+
+@media (min-width: 1100px) {
+  body {
+    padding: 32px 0;
+  }
+
+  .app-shell {
+    max-width: 900px;
+    min-height: calc(100vh - 64px);
+    border-radius: 12px;
+  }
+
+  .app-header {
+    padding: 26px 36px 16px;
+  }
+
+  .screen {
+    padding: 28px 36px 128px;
+  }
+
+  .puzzle-board {
+    gap: 14px;
+  }
+
+  .puzzle-row {
+    grid-template-columns: 108px minmax(0, 1fr);
+    min-height: 188px;
+  }
+
+  .location-piece {
+    padding: 30px 28px 24px 42px;
+  }
+
+  .location-piece input {
+    font-size: 22px;
+  }
+
+  .trip-index-panel {
+    right: max(20px, calc((100vw - 900px) / 2 - 260px));
+    bottom: auto;
+    left: auto;
+    top: 140px;
+    width: min(232px, calc(100vw - 40px));
+    max-height: calc(100vh - 190px);
+  }
+
+  .button-row[data-actions-for="trip"] .index-button {
+    display: none;
+  }
+
+  .app-bottom-bar {
+    padding-right: 36px;
+    padding-left: 36px;
   }
 }
