@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1540" height="1080" viewBox="0 0 1540 1080">
+  <defs>
+    <style>
+      .bg{fill:#fbfbfb}.panel{fill:#fff;stroke:#d1d1d1}.line{stroke:#ddd}.muted{fill:#666}.text{fill:#111}.soft{fill:#f7f7f7}.black{fill:#111}.grid{fill:#2578ff;opacity:.07}.chip{fill:#fff;stroke:#aaa}.label{font:12px Arial,"PingFang SC",sans-serif}.body{font:13px Arial,"PingFang SC",sans-serif}.small{font:11px Arial,"PingFang SC",sans-serif}.h1{font:bold 24px Arial,"PingFang SC",sans-serif}.h2{font:bold 18px Arial,"PingFang SC",sans-serif}.h3{font:bold 16px Arial,"PingFang SC",sans-serif}.bold{font:bold 13px Arial,"PingFang SC",sans-serif}.tiny{font:bold 10px Arial,"PingFang SC",sans-serif}
+    </style>
+  </defs>
+  <rect class="bg" width="1540" height="1080"/>
+  <text class="h1 text" x="80" y="52">旅行手帐路线生成器 · 路线编辑 App Grid 还原预览</text>
+  <text class="body muted" x="80" y="78">Source: screen-edit / renderStructure() / style.css. 计划写入 Figma 时会把每个组件、文档、图层都命名标注。</text>
+
+  <!-- App screen -->
+  <g transform="translate(80 116)">
+    <rect class="panel" width="390" height="844"/>
+    <g>
+      <rect class="grid" x="14" width="82" height="844"/>
+      <rect class="grid" x="106" width="82" height="844"/>
+      <rect class="grid" x="198" width="82" height="844"/>
+      <rect class="grid" x="290" width="82" height="844"/>
+      <g opacity=".35">
+        <path class="line" d="M0 64H390M0 128H390M0 192H390M0 256H390M0 320H390M0 384H390M0 448H390M0 512H390M0 576H390M0 640H390M0 704H390M0 768H390"/>
+      </g>
+    </g>
+    <rect fill="#fff" stroke="#ddd" width="390" height="62"/>
+    <text class="small muted" x="14" y="22">travel-journal-route-app</text>
+    <text class="h2 text" x="14" y="45">路线编辑</text>
+    <rect class="soft" stroke="#bbb" x="326" y="18" width="50" height="24" rx="12"/>
+    <text class="label muted" x="336" y="34">2 / 5</text>
+
+    <text class="h1 text" x="14" y="106">杭州西湖小猪线徒步</text>
+    <rect class="panel" x="304" y="78" width="72" height="44" rx="8"/>
+    <text class="body text" x="328" y="106">Edit</text>
+
+    <rect class="panel" x="14" y="140" width="362" height="194" rx="8"/>
+    <text class="h3 text" x="26" y="166">Overview</text>
+    <text class="h3 text" x="26" y="195">杭州西湖小猪线徒步</text>
+    <text class="tiny muted" x="26" y="226">route type</text>
+    <text class="body text" x="26" y="244">城市山野徒步 / 环线感路线</text>
+    <text class="tiny muted" x="195" y="226">distance</text>
+    <text class="body text" x="195" y="244">15 公里</text>
+    <text class="tiny muted" x="26" y="266">elevation</text>
+    <text class="body text" x="26" y="284">累计爬升 617 米</text>
+    <text class="tiny muted" x="195" y="266">estimated duration</text>
+    <text class="body text" x="195" y="284">约 5-7 小时</text>
+    <text class="body text" x="26" y="318">查看完整路线目录</text>
+    <path stroke="#aaa" d="M26 324H128"/>
+
+    <rect class="panel" x="14" y="344" width="362" height="340" rx="8"/>
+    <text class="h3 text" x="26" y="370">Route cards</text>
+    <rect fill="#fafafa" stroke="#111" x="14" y="386" width="362" height="148" rx="8"/>
+    <circle fill="#f1f1f1" stroke="#999" cx="43" cy="416" r="17"/>
+    <text class="bold text" x="36" y="421">交</text>
+    <text class="h3 text" x="68" y="410">上海虹桥站到吴山广场站 D 口</text>
+    <rect fill="#fff" stroke="#aaa" x="286" y="396" width="34" height="34" rx="6"/>
+    <text font-size="20" fill="#111" x="297" y="419">×</text>
+    <rect fill="#fff" stroke="#aaa" x="326" y="396" width="34" height="34" rx="6"/>
+    <text font-size="18" fill="#111" x="338" y="419">⌃</text>
+    <text class="body text" x="68" y="436">上海虹桥站出发，高铁到杭州东站；地铁 4 号线转 7 号线...</text>
+    <text class="bold text" x="68" y="474">提前看好高铁和地铁换乘时间。</text>
+    <rect class="soft" stroke="#d8d8d8" x="24" y="482" width="342" height="44" rx="8"/>
+    <text class="tiny muted" x="36" y="500">Direction / transport        Note        Reminder        Estimated duration</text>
+    <text class="small text" x="36" y="516">上海虹桥站出发 · 上海当天可以往返 · 提前看好换乘时间</text>
+
+    <path stroke="#ddd" d="M14 546H376"/>
+    <circle fill="#f1f1f1" stroke="#999" cx="43" cy="576" r="17"/>
+    <text class="bold text" x="36" y="581">起</text>
+    <text class="h3 text" x="68" y="570">吴山广场 / 吴山天峰起点</text>
+    <text class="body text" x="68" y="596">从吴山广场地铁站出发，进入吴山天峰方向。</text>
+    <text class="bold text" x="68" y="623">想画出完整小猪形状，要勤看轨迹。</text>
+
+    <path stroke="#ddd" d="M14 640H376"/>
+    <circle fill="#f1f1f1" stroke="#999" cx="43" cy="670" r="17"/>
+    <text class="bold text" x="36" y="675">景</text>
+    <text class="h3 text" x="68" y="664">吴山大观 / 城隍阁绣球花展</text>
+
+    <rect fill="#fff" stroke="#777" stroke-dasharray="4 4" x="14" y="698" width="362" height="44" rx="8"/>
+    <text class="body text" x="144" y="725">+ 新增路线步骤</text>
+    <rect class="panel" x="14" y="754" width="362" height="44" rx="8"/>
+    <text class="h3 text" x="26" y="782">Warnings</text>
+    <text font-size="18" fill="#111" x="348" y="782">⌄</text>
+
+    <rect fill="#fff" stroke="#ddd" y="800" width="390" height="44"/>
+    <rect class="panel" x="14" y="800" width="130" height="44" rx="8"/>
+    <text class="body text" x="66" y="827">Back</text>
+    <rect class="black" x="154" y="800" width="222" height="44" rx="8"/>
+    <text class="body" fill="#fff" x="214" y="827">Continue to Check</text>
+  </g>
+
+  <!-- Floating index -->
+  <g transform="translate(510 116)">
+    <rect class="panel" width="260" height="520" rx="8"/>
+    <text class="h3 text" x="12" y="30">Route index</text>
+    <g transform="translate(12 46)">
+      <rect class="black" width="220" height="32" rx="16"/>
+      <circle fill="#fff" cx="18" cy="16" r="10"/>
+      <text class="tiny text" x="15" y="20">交</text>
+      <text class="body" fill="#fff" x="34" y="21">交通 上海虹桥站</text>
+    </g>
+    <g transform="translate(12 94)"><rect class="chip" width="220" height="32" rx="16"/><circle fill="#f2f2f2" stroke="#aaa" cx="18" cy="16" r="10"/><text class="tiny text" x="15" y="20">起</text><text class="body text" x="34" y="21">起点 吴山广场</text></g>
+    <g transform="translate(12 142)"><rect class="chip" width="220" height="32" rx="16"/><circle fill="#f2f2f2" stroke="#aaa" cx="18" cy="16" r="10"/><text class="tiny text" x="15" y="20">景</text><text class="body text" x="34" y="21">景点 城隍阁</text></g>
+    <g transform="translate(12 190)"><rect class="chip" width="220" height="32" rx="16"/><circle fill="#f2f2f2" stroke="#aaa" cx="18" cy="16" r="10"/><text class="tiny text" x="15" y="20">景</text><text class="body text" x="34" y="21">景点 绿色藤蔓</text></g>
+    <g transform="translate(12 238)"><rect class="chip" width="220" height="32" rx="16"/><circle fill="#f2f2f2" stroke="#aaa" cx="18" cy="16" r="10"/><text class="tiny text" x="15" y="20">纪</text><text class="body text" x="34" y="21">纪念 浙江革命烈士</text></g>
+    <g transform="translate(12 286)"><rect class="chip" width="220" height="32" rx="16"/><circle fill="#f2f2f2" stroke="#aaa" cx="18" cy="16" r="10"/><text class="tiny text" x="15" y="20">爬</text><text class="body text" x="34" y="21">爬升 凤凰山土路</text></g>
+  </g>
+
+  <!-- Docs -->
+  <g transform="translate(800 116)">
+    <rect class="panel" width="340" height="844" rx="8"/>
+    <text class="h1 text" x="20" y="42">组件与状态文档</text>
+    <g class="body">
+      <text class="bold text" x="20" y="88">App Header Sticky</text><text class="muted" x="20" y="108">顶部固定栏：eyebrow、screen title、2/5 step pill。</text>
+      <text class="bold text" x="20" y="150">Title Editor Block</text><text class="muted" x="20" y="170">标题阅读态 + Edit 按钮；可进入输入态。</text>
+      <text class="bold text" x="20" y="212">Info Block / Overview</text><text class="muted" x="20" y="232">路程概览容器，含 metadata grid 与路线目录入口。</text>
+      <text class="bold text" x="20" y="274">Route Step Summary</text><text class="muted" x="20" y="294">路线节点摘要态；focused 使用黑描边和浅灰底。</text>
+      <text class="bold text" x="20" y="336">Route Step Expanded</text><text class="muted" x="20" y="356">展开态只读详情；编辑态替换为 Field Grid。</text>
+      <text class="bold text" x="20" y="398">Overview Step Button</text><text class="muted" x="20" y="418">路线索引 pill，支持 active、drag handle、short label。</text>
+      <text class="bold text" x="20" y="460">Bottom Action Bar</text><text class="muted" x="20" y="480">底部固定操作栏，secondary Back 与 primary Continue。</text>
+      <text class="bold text" x="20" y="522">Collapsed Sections</text><text class="muted" x="20" y="542">Warnings / Preparation / Highlights 折叠信息块。</text>
+    </g>
+  </g>
+
+  <!-- Layer map -->
+  <g transform="translate(1170 116)">
+    <rect class="panel" width="300" height="844" rx="8"/>
+    <text class="h1 text" x="20" y="42">图层标注</text>
+    <text class="body muted" x="20" y="72">写入 Figma 后会使用这些命名前缀：</text>
+    <text class="body text" x="20" y="112">SECTION / 路程编辑界面还原</text>
+    <text class="body muted" x="20" y="148">FRAME / App Screen 390x844</text>
+    <text class="body muted" x="20" y="184">Grid / 4-column app grid</text>
+    <text class="body muted" x="20" y="220">COMPONENT / App Header Sticky</text>
+    <text class="body muted" x="20" y="256">COMPONENT / Title Editor Block</text>
+    <text class="body muted" x="20" y="292">COMPONENT / Info Block / Overview</text>
+    <text class="body muted" x="20" y="328">COMPONENT / Info Block / Route Cards</text>
+    <text class="body muted" x="20" y="364">STATE / Focused Route Step Summary</text>
+    <text class="body muted" x="20" y="400">COMPONENT / Route Step Expanded</text>
+    <text class="body muted" x="20" y="436">COMPONENT / Add Route Step Button</text>
+    <text class="body muted" x="20" y="472">COMPONENT / Bottom Action Bar</text>
+    <text class="body muted" x="20" y="508">DOC / Component Documentation</text>
+    <rect class="soft" stroke="#d1d1d1" x="20" y="584" width="260" height="112" rx="8"/>
+    <text class="bold text" x="36" y="614">还原说明</text>
+    <text class="small muted" x="36" y="638">所有 UI 节点可编辑。组件级图层以 COMPONENT /</text>
+    <text class="small muted" x="36" y="656">前缀命名，状态以 STATE / 前缀命名，说明文字</text>
+    <text class="small muted" x="36" y="674">以 DOC / 前缀命名。</text>
+  </g>
+</svg>
