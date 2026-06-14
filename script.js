@@ -149,6 +149,7 @@ const screens = {
 const sourceText = document.getElementById("sourceText");
 const createButton = document.getElementById("createButton");
 const finalCreateButton = document.getElementById("finalCreateButton");
+const createNewButton = document.getElementById("createNewButton");
 const tripTitleInput = document.getElementById("tripTitleInput");
 const tripIndexButton = document.getElementById("tripIndexButton");
 const headerBackButton = document.getElementById("headerBackButton");
@@ -165,7 +166,18 @@ createButton.addEventListener("click", () => {
 });
 
 finalCreateButton.addEventListener("click", () => {
-  document.getElementById("finalMessage").textContent = "Created. This prototype does not export files yet.";
+  document.getElementById("finalMessage").textContent = "Saved. This prototype does not export files yet.";
+});
+
+createNewButton.addEventListener("click", () => {
+  appState.trip = cloneTrip(defaultTrip);
+  appState.selectedTemplate = "detailed";
+  appState.draggingIndex = null;
+  appState.focusedIndex = null;
+  appState.isTripIndexOpen = false;
+  sourceText.value = sampleTripText;
+  document.getElementById("finalMessage").textContent = "";
+  goToScreen("home");
 });
 
 document.querySelectorAll("[data-go]").forEach((button) => {
