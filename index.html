@@ -3,73 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>旅行手帐路线生成器</title>
+  <title>旅行路线生成器</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="app-header">
       <button class="back-icon-button" id="headerBackButton" type="button" aria-label="返回上一页">&lt;</button>
-      <div>
-        <p class="eyebrow" id="screenKicker">home</p>
-        <h1 id="screenTitle">Create trip</h1>
+      <div class="header-copy">
+        <h1 id="screenTitle">你想去哪儿？</h1>
+        <div class="progress-segments" id="progressSegments" aria-label="进度">
+          <span class="is-active"></span>
+          <span></span>
+          <span></span>
+        </div>
       </div>
-      <span class="step-indicator" id="stepIndicator">1 / 5</span>
     </header>
 
     <main class="app-main">
       <section class="screen is-active" id="screen-home">
+        <h2 class="home-title">你想去哪里?</h2>
         <label class="home-input-block">
-          <span>Paste itinerary notes</span>
-          <textarea id="sourceText" rows="14" placeholder="Paste route notes, timestamps, places, or rough ideas..."></textarea>
+          <textarea id="sourceText" rows="14" placeholder="粘贴攻略内容..."></textarea>
         </label>
+        <div class="home-action-row">
+          <button class="primary-button" id="generateButton" type="button">生成路线</button>
+        </div>
       </section>
 
-      <section class="screen" id="screen-trip">
-        <div class="trip-name-bar">
-          <input id="tripTitleInput" aria-label="Trip name" value="Trip #1">
-        </div>
-        <div id="puzzleEditor"></div>
-      </section>
-
-      <section class="screen" id="screen-check">
-        <div class="trip-name-bar">
-          <strong id="checkTitle">Trip #1</strong>
-        </div>
-        <div id="checkPreview"></div>
+      <section class="screen" id="screen-route">
+        <section class="route-hero">
+          <h2 id="tripTitle">杭州之行</h2>
+          <div class="metadata-chips" aria-label="路线标签">
+            <span>简单</span>
+            <span>城市徒步</span>
+            <span>5km</span>
+          </div>
+        </section>
+        <div id="routeEditor"></div>
       </section>
 
       <section class="screen" id="screen-template">
         <div class="template-stack" id="templateStack"></div>
       </section>
 
-      <section class="screen" id="screen-final">
-        <div id="finalPreview"></div>
-        <p class="status-message" id="finalMessage" aria-live="polite"></p>
+      <section class="screen" id="screen-preview">
+        <div id="templatePreview"></div>
+        <p class="status-message" id="toastMessage" aria-live="polite"></p>
       </section>
     </main>
 
     <footer class="app-bottom-bar">
-      <div class="button-row is-active" data-actions-for="home">
-        <button class="primary-button" id="createButton" type="button">CREATE</button>
+      <div class="button-row two-up" data-actions-for="route-view">
+        <button class="secondary-button" id="editRouteButton" type="button">修改</button>
+        <button class="primary-button" data-go="template" type="button">生成路线图</button>
       </div>
-      <div class="button-row" data-actions-for="trip">
-        <button class="index-button" id="tripIndexButton" type="button" aria-label="打开路线目录" aria-expanded="false">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <button class="primary-button" data-go="check" type="button">Next</button>
+      <div class="button-row two-up" data-actions-for="route-edit">
+        <button class="secondary-button" id="cancelEditButton" type="button">撤回</button>
+        <button class="primary-button" id="finishEditButton" type="button">完成</button>
       </div>
-      <div class="button-row" data-actions-for="check">
-        <button class="primary-button" data-go="template" type="button">Next</button>
+      <div class="button-row two-up" data-actions-for="template">
+        <button class="secondary-button" data-go="route" type="button">Back</button>
+        <button class="primary-button" data-go="preview" type="button">Next</button>
       </div>
-      <div class="button-row" data-actions-for="template">
-        <button class="primary-button" data-go="final" type="button">Next</button>
-      </div>
-      <div class="button-row two-up" data-actions-for="final">
-        <button class="secondary-button" id="createNewButton" type="button">Create new</button>
-        <button class="primary-button" id="finalCreateButton" type="button">Save</button>
+      <div class="button-row two-up" data-actions-for="preview">
+        <button class="secondary-button" id="createNewButton" type="button">创建新路线</button>
+        <button class="primary-button" id="downloadButton" type="button">下载</button>
       </div>
     </footer>
   </div>

@@ -1,207 +1,175 @@
 const defaultTrip = {
-  title: "杭州西湖小猪线徒步",
-  overview: "上海可当天往返的杭州西湖边小众徒步路线，串联吴山、八卦田、玉皇山、紫来洞、九曜阁和西湖边。",
-  metadata: {
-    routeType: "城市山野徒步",
-    distance: "约 15 公里",
-    elevation: "累计爬升 617 米",
-    estimatedDuration: "约 5-7 小时"
-  },
+  title: "杭州之行",
+  metadata: ["简单", "城市徒步", "5km"],
   steps: [
     {
-      time: "08:00",
-      title: "上海虹桥站到吴山广场站 D 口",
-      direction: "高铁到杭州东站，地铁换乘到吴山广场站 D 口。",
-      note: "上海当天可以往返，吴山天峰是徒步起点。",
-      reminder: "提前看好高铁和地铁换乘时间。"
+      time: "7:00",
+      title: "上海虹桥车站乘高铁到杭州站",
+      note: "填写车次与车厢号"
     },
     {
-      time: "09:30",
-      title: "吴山广场 / 吴山天峰起点",
-      direction: "从吴山广场地铁站出发，进入吴山天峰方向。",
-      note: "开始画小猪线，第一段走向八卦田。",
-      reminder: "想画出完整小猪形状，要勤看轨迹。"
+      time: "7:40",
+      title: "到达杭州站后出站",
+      note: ""
     },
     {
-      time: "10:10",
-      title: "吴山大观 / 城隍阁",
-      direction: "沿吴山路线经过吴山大观和城隍阁。",
-      note: "绣球花开时很好看，可按现场情况购票参观。",
-      reminder: "参观城隍阁按开放和购票情况决定。"
+      time: "8:00",
+      title: "地铁乘坐1号线到达西湖站",
+      note: "E 地铁口出来"
     },
     {
-      time: "10:50",
-      title: "绿色藤蔓天幕",
-      direction: "从吴山小路拐入安静林间路段。",
-      note: "麻藤编织出绿色天幕，像现实版绿野仙踪。",
-      reminder: "路口容易错过，继续确认轨迹方向。"
+      time: "起点",
+      title: "导航到小群山",
+      note: "走 300 米到达起点，约 10 分钟"
     },
     {
-      time: "11:30",
-      title: "凤凰山土路爬升",
-      direction: "沿万松岭路走一段，右转上山进入凤凰山土路。",
-      note: "这一段开始画猪肚皮，树荫多，不太晒。",
-      reminder: "土路爬升消耗体力，夏季记得驱蚊。"
+      time: "直走",
+      title: "沿着西湖路走 1km",
+      note: "约 30 分钟"
     },
     {
-      time: "12:30",
-      title: "八卦田",
-      direction: "穿过八卦田，进入八卦田到九曜阁段。",
-      note: "南宋皇帝亲耕田，是路线里很有辨识度的节点。",
-      reminder: "从这里继续上玉皇山。"
+      time: "到达",
+      title: "到达大榕树并短暂停留",
+      note: "停留一下"
     },
     {
-      time: "13:20",
-      title: "玉皇山 / 紫来洞",
-      direction: "继续上玉皇山，一路爬升到紫来洞。",
-      note: "紫来洞门口凉气扑面，还能俯瞰八卦田。",
-      reminder: "玉皇山门票 10 元，爬升段注意补水。"
+      time: "山路",
+      title: "沿着山路走到达小山寺",
+      note: "安静寺庙，可以休息一下啦"
     },
     {
-      time: "14:20",
-      title: "七星亭 / 福星观",
-      direction: "过七星亭到福星观，可远眺钱塘江和西湖。",
-      note: "一带视野开阔，有江湖一览的观景感。",
-      reminder: "临时脱离轨迹后，回主路线时重新确认方向。"
+      time: "公交",
+      title: "乘 7 路公交到龙井路口",
+      note: "下车后沿路口继续步行"
     },
     {
-      time: "15:10",
-      title: "土路下山 / 猪尾巴路段",
-      direction: "从福星观附近土路下山，进入猪屁股和猪尾巴路段。",
-      note: "短尾巴可按体力和路线选择只画一半。",
-      reminder: "岔路注意方向，下山土路注意防滑。"
-    },
-    {
-      time: "16:00",
-      title: "九曜阁",
-      direction: "完成尾巴路段后爬升到九曜阁。",
-      note: "九曜阁可以俯瞰西湖，是后半程的重要观景点。",
-      reminder: "到九曜阁前有一段爬升，注意体力分配。"
-    },
-    {
-      time: "17:00",
-      title: "西湖边返回吴山广场",
-      direction: "沿南屏山游步道下山，再沿西湖边走回吴山广场。",
-      note: "天气和时间合适时，有机会收获日落西湖。",
-      reminder: "全程约 15 公里，结束后及时补水补能量。"
+      time: "",
+      title: "在茶馆门口休息补水",
+      note: "停留 15 分钟"
     }
-  ],
-  preparation: ["驱蚊液", "水", "轻便徒步鞋", "充电宝", "轨迹导航", "少量补给", "现金/手机支付用于门票"],
-  warnings: ["勤看轨迹", "部分土路爬升", "岔路注意方向", "下山注意防滑", "夏季注意防蚊和补水"],
-  highlights: ["吴山天峰", "绿色藤蔓天幕", "八卦田", "紫来洞", "九曜阁俯瞰西湖", "日落西湖"]
+  ]
 };
 
 const templateOptions = [
   {
     id: "detailed",
-    title: "详细版本",
+    title: "详细路线",
     subtitle: "适合 A4 打印"
   },
   {
     id: "card",
-    title: "小卡片版",
-    subtitle: "最小版线路图"
+    title: "小卡路线图",
+    subtitle: "适合打印下来随身携带"
   },
   {
     id: "timeline",
-    title: "时间轴版",
-    subtitle: "适合贴在 TN / 手帐尺寸"
+    title: "时间轴路线",
+    subtitle: "适合打印放在手帐本里"
   }
 ];
 
 const sampleTripText = [
-  defaultTrip.overview,
-  ...defaultTrip.steps.map((step) => `${step.time} ${step.title} - ${step.direction}`)
+  "上海出发去杭州西湖城市徒步。",
+  ...defaultTrip.steps.map((step) => `${step.time} ${step.title} - ${step.note}`)
 ].join("\n");
+
+const homePlaceholder = "将文字攻略或者视频逐字稿粘贴进来，\n我将帮你生成旅行路线~";
 
 const appState = {
   screen: "home",
+  routeMode: "view",
   selectedTemplate: "detailed",
-  draggingIndex: null,
-  focusedIndex: null,
-  isTripIndexOpen: false,
+  undoStack: [],
+  draggingRouteIndex: null,
+  activeEmptyTimeIndex: null,
+  activeEmptyRouteIndex: null,
   trip: cloneTrip(defaultTrip)
 };
 
 const screenMeta = {
-  home: { kicker: "home", title: "Create trip", step: "1 / 5" },
-  trip: { kicker: "TRIP", title: "Trip puzzle", step: "2 / 5" },
-  check: { kicker: "check", title: "Route check", step: "3 / 5" },
-  template: { kicker: "template", title: "Template", step: "4 / 5" },
-  final: { kicker: "check", title: "Final preview", step: "5 / 5" }
+  home: { title: "你想去哪儿？", progress: 0 },
+  route: { title: "路线编辑", progress: 1 },
+  template: { title: "选择模版", progress: 2 },
+  preview: { title: "打印预览", progress: 3 }
 };
 
 const previousScreen = {
-  trip: "home",
-  check: "trip",
-  template: "check",
-  final: "template"
+  route: "home",
+  template: "route",
+  preview: "template"
 };
 
 const screens = {
   home: document.getElementById("screen-home"),
-  trip: document.getElementById("screen-trip"),
-  check: document.getElementById("screen-check"),
+  route: document.getElementById("screen-route"),
   template: document.getElementById("screen-template"),
-  final: document.getElementById("screen-final")
+  preview: document.getElementById("screen-preview")
 };
 
 const sourceText = document.getElementById("sourceText");
-const createButton = document.getElementById("createButton");
-const finalCreateButton = document.getElementById("finalCreateButton");
+const generateButton = document.getElementById("generateButton");
+const editRouteButton = document.getElementById("editRouteButton");
+const cancelEditButton = document.getElementById("cancelEditButton");
+const finishEditButton = document.getElementById("finishEditButton");
 const createNewButton = document.getElementById("createNewButton");
-const tripTitleInput = document.getElementById("tripTitleInput");
-const tripIndexButton = document.getElementById("tripIndexButton");
+const downloadButton = document.getElementById("downloadButton");
 const headerBackButton = document.getElementById("headerBackButton");
-const desktopRouteIndexQuery = window.matchMedia("(min-width: 1100px)");
 
-sourceText.value = sampleTripText;
+sourceText.placeholder = homePlaceholder;
 
-createButton.addEventListener("click", () => {
+generateButton.addEventListener("click", () => {
   appState.trip = buildTripFromInput(sourceText.value);
+  appState.routeMode = "view";
   appState.selectedTemplate = "detailed";
-  appState.focusedIndex = null;
-  appState.isTripIndexOpen = false;
-  goToScreen("trip");
+  goToScreen("route");
 });
 
-finalCreateButton.addEventListener("click", () => {
-  document.getElementById("finalMessage").textContent = "Saved. This prototype does not export files yet.";
+editRouteButton.addEventListener("click", () => {
+  appState.routeMode = "edit";
+  appState.undoStack = [];
+  renderRoutePage();
+  renderActionBar();
+});
+
+cancelEditButton.addEventListener("click", () => {
+  undoLastEdit();
+  renderActionBar();
+});
+
+finishEditButton.addEventListener("click", () => {
+  appState.routeMode = "view";
+  appState.undoStack = [];
+  renderRoutePage();
+  renderActionBar();
+});
+
+downloadButton.addEventListener("click", () => {
+  document.getElementById("toastMessage").textContent = "下载已准备好。当前原型暂不生成真实文件。";
 });
 
 createNewButton.addEventListener("click", () => {
   appState.trip = cloneTrip(defaultTrip);
+  appState.routeMode = "view";
   appState.selectedTemplate = "detailed";
-  appState.draggingIndex = null;
-  appState.focusedIndex = null;
-  appState.isTripIndexOpen = false;
-  sourceText.value = sampleTripText;
-  document.getElementById("finalMessage").textContent = "";
+  appState.undoStack = [];
+  sourceText.value = "";
+  sourceText.placeholder = homePlaceholder;
+  document.getElementById("toastMessage").textContent = "";
   goToScreen("home");
 });
 
 document.querySelectorAll("[data-go]").forEach((button) => {
   button.addEventListener("click", () => {
-    syncTripTitle();
-    appState.isTripIndexOpen = false;
     goToScreen(button.dataset.go);
   });
-});
-
-tripIndexButton.addEventListener("click", () => {
-  appState.isTripIndexOpen = !appState.isTripIndexOpen;
-  renderPuzzleEditor();
-});
-
-desktopRouteIndexQuery.addEventListener("change", () => {
-  if (appState.screen === "trip") renderPuzzleEditor();
 });
 
 headerBackButton.addEventListener("click", () => {
   const target = previousScreen[appState.screen];
   if (!target) return;
-  syncTripTitle();
-  appState.isTripIndexOpen = false;
+  if (appState.screen === "route" && appState.routeMode === "edit") {
+    appState.routeMode = "view";
+  }
   goToScreen(target);
 });
 
@@ -210,40 +178,148 @@ function cloneTrip(trip) {
 }
 
 function buildTripFromInput(value) {
-  const lines = String(value || "")
+  const normalizedValue = String(value || "").trim();
+  if (!normalizedValue || normalizedValue === sampleTripText.trim()) return cloneTrip(defaultTrip);
+
+  const lines = normalizedValue
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
 
-  if (!lines.length || String(value).trim() === sampleTripText.trim()) return cloneTrip(defaultTrip);
+  return {
+    title: "杭州之行",
+    metadata: [inferDifficulty(normalizedValue), inferRouteType(normalizedValue), inferDistanceLabel(normalizedValue)],
+    steps: lines.slice(0, 8).map(parseRouteLine)
+  };
+}
 
-  const steps = lines.slice(0, 6).map((line, index) => {
-    const timeMatch = line.match(/(?:^|\s)(\d{1,2}[:：]\d{2})(?:\s|$)/);
-    const time = timeMatch ? timeMatch[1].replace("：", ":") : `${9 + index}:00`;
-    const title = cleanTitle(line.replace(timeMatch?.[1] || "", "")) || `Location ${index + 1}`;
-    return {
-      time,
-      title,
-      direction: "",
-      note: "",
-      reminder: ""
-    };
-  });
+function parseRouteLine(line) {
+  const normalizedLine = String(line || "").replace(/\s+/g, " ").trim();
+  const timeMatch = normalizedLine.match(/(?:^|\s)(\d{1,2}[:：]\d{2})(?:\s|$)/);
+  const keyword = timeMatch ? "" : extractRouteKeyword(normalizedLine);
+  const label = timeMatch ? timeMatch[1].replace("：", ":") : keyword;
+  const contentWithoutLabel = removeExtractedLabel(normalizedLine, timeMatch?.[1] || keyword);
+  const { title, note } = splitRouteContent(contentWithoutLabel || normalizedLine);
 
   return {
-    title: "Trip #1",
-    overview: "从输入内容生成的简版路线，可在拼图编辑器里继续整理。",
-    metadata: {
-      routeType: "自定义路线",
-      distance: "待补充",
-      elevation: "待补充",
-      estimatedDuration: "待补充"
-    },
-    steps,
-    preparation: [],
-    warnings: [],
-    highlights: []
+    time: label,
+    title,
+    note
   };
+}
+
+function extractRouteKeyword(line) {
+  const routeKeywords = ["起点", "直走", "到达", "山路", "公交", "地铁", "高铁", "打车", "步行", "导航", "换乘", "左转", "右转", "上山", "下山"];
+  return routeKeywords.find((keyword) => line.includes(keyword)) || "";
+}
+
+function removeExtractedLabel(line, label) {
+  if (!label) return line;
+  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return line
+    .replace(new RegExp(`^\\s*${escapedLabel}\\s*[-—·,，。:：]?\\s*`), "")
+    .replace(new RegExp(`\\s+${escapedLabel}\\s+`), " ")
+    .trim();
+}
+
+function splitRouteContent(line) {
+  const [titlePart, ...noteParts] = String(line || "")
+    .split(/\s*[-—|｜。；;]\s*/)
+    .filter(Boolean);
+
+  return {
+    title: cleanRouteContent(titlePart || line),
+    note: cleanRouteContent(noteParts.join(" "))
+  };
+}
+
+function inferDifficulty(text) {
+  const content = String(text || "");
+  const explicitRules = [
+    { level: "困难", words: ["困难", "难度高", "强度大", "高强度", "不适合新手", "虐线", "暴走", "陡", "很累"] },
+    { level: "中等", words: ["中等", "适中", "一般难度", "有点累", "小爬升", "轻徒步"] },
+    { level: "简单", words: ["简单", "轻松", "容易", "新手友好", "亲子", "平路", "休闲", "citywalk", "Citywalk"] }
+  ];
+
+  for (const rule of explicitRules) {
+    if (rule.words.some((word) => content.includes(word))) return rule.level;
+  }
+
+  const distanceKm = extractDistanceKm(content);
+  const elevationM = extractElevationM(content);
+  let score = 0;
+
+  if (distanceKm >= 12) score += 2;
+  else if (distanceKm >= 6) score += 1;
+
+  if (elevationM >= 500) score += 2;
+  else if (elevationM >= 200) score += 1;
+
+  if (/(爬升|山路|徒步|台阶|土路|下山|登山|越野|环线)/.test(content)) score += 1;
+  if (/(地铁|公交|城市|西湖|街区|公园|广场|博物馆)/.test(content)) score -= 1;
+
+  if (score >= 3) return "困难";
+  if (score >= 1) return "中等";
+  return "简单";
+}
+
+function extractDistanceKm(text) {
+  const kmMatch = String(text || "").match(/(\d+(?:\.\d+)?)\s*(?:km|公里|千米)/i);
+  if (kmMatch) return Number(kmMatch[1]);
+
+  const meterMatch = String(text || "").match(/(\d+(?:\.\d+)?)\s*(?:m|米)/i);
+  if (meterMatch) return Number(meterMatch[1]) / 1000;
+
+  return 0;
+}
+
+function inferDistanceLabel(text) {
+  const distanceKm = extractTotalDistanceKm(text);
+  if (!distanceKm) return "-km";
+  return `${formatDistance(distanceKm)}km`;
+}
+
+function extractTotalDistanceKm(text) {
+  const content = String(text || "");
+  const totalKeywords = "(?:全程|总长|总距离|路线长度|路程|总路程|距离|共|约|大约)";
+  const totalKmMatch = content.match(new RegExp(`${totalKeywords}[^\\d]{0,8}(\\d+(?:\\.\\d+)?)\\s*(?:km|公里|千米)`, "i"));
+  if (totalKmMatch) return Number(totalKmMatch[1]);
+
+  const kmMatch = content.match(/(\d+(?:\.\d+)?)\s*(?:km|公里|千米)/i);
+  if (kmMatch) return Number(kmMatch[1]);
+
+  const totalMeterMatch = content.match(new RegExp(`${totalKeywords}[^\\d]{0,8}(\\d+(?:\\.\\d+)?)\\s*(?:m|米)`, "i"));
+  if (totalMeterMatch) return Number(totalMeterMatch[1]) / 1000;
+
+  return 0;
+}
+
+function formatDistance(value) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.0$/, "");
+}
+
+function extractElevationM(text) {
+  const elevationMatch = text.match(/(?:爬升|海拔|上升|累计爬升)[^\d]*(\d+(?:\.\d+)?)\s*(?:m|米)/i);
+  return elevationMatch ? Number(elevationMatch[1]) : 0;
+}
+
+function inferRouteType(text) {
+  const content = String(text || "");
+  const typeRules = [
+    { type: "山野徒步", words: ["山路", "登山", "爬山", "爬升", "下山", "土路", "越野", "步道", "环线", "山脊"] },
+    { type: "湖岸徒步", words: ["湖边", "沿湖", "西湖", "湖岸", "江边", "河边", "滨水", "栈道"] },
+    { type: "公园徒步", words: ["公园", "绿道", "湿地", "植物园", "森林公园", "园区"] },
+    { type: "城市徒步", words: ["城市徒步", "citywalk", "Citywalk", "街区", "老街", "巷子", "城市", "步行", "city walk", "马路"] },
+    { type: "轻徒步", words: ["轻徒步", "休闲", "轻松", "亲子", "平路", "散步", "短线"] }
+  ];
+
+  const scoredTypes = typeRules.map((rule, ruleIndex) => {
+    const score = rule.words.reduce((total, word) => total + (content.includes(word) ? 1 : 0), 0);
+    return { type: rule.type, score, ruleIndex };
+  });
+  scoredTypes.sort((a, b) => b.score - a.score || a.ruleIndex - b.ruleIndex);
+
+  return scoredTypes[0].score > 0 ? scoredTypes[0].type : "自由徒步";
 }
 
 function cleanTitle(value) {
@@ -251,205 +327,336 @@ function cleanTitle(value) {
     .replace(/^[-—·,，。:：\s]+/, "")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 28);
+    .slice(0, 24);
+}
+
+function cleanRouteContent(value) {
+  return String(value || "")
+    .replace(/^[-—·,，。:：\s]+/, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 42);
 }
 
 function goToScreen(screenName) {
   appState.screen = screenName;
+  if (screenName !== "route") appState.routeMode = "view";
+
   Object.entries(screens).forEach(([name, screen]) => {
     screen.classList.toggle("is-active", name === screenName);
   });
-  document.querySelectorAll("[data-actions-for]").forEach((row) => {
-    row.classList.toggle("is-active", row.dataset.actionsFor === screenName);
-  });
 
   const meta = screenMeta[screenName];
-  document.getElementById("screenKicker").textContent = meta.kicker;
   document.getElementById("screenTitle").textContent = meta.title;
-  document.getElementById("stepIndicator").textContent = meta.step;
   headerBackButton.classList.toggle("is-visible", screenName !== "home");
+  renderProgress(meta.progress);
 
-  if (screenName === "trip") renderPuzzleEditor();
-  if (screenName === "check") renderCheckPreview();
+  if (screenName === "route") renderRoutePage();
   if (screenName === "template") renderTemplateSelection();
-  if (screenName === "final") renderFinalPreview();
+  if (screenName === "preview") renderTemplatePreview();
+  renderActionBar();
 
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 
-function syncTripTitle() {
-  if (!tripTitleInput) return;
-  appState.trip.title = tripTitleInput.value.trim() || "Trip #1";
+function renderProgress(activeStep) {
+  document.querySelectorAll("#progressSegments span").forEach((segment, index) => {
+    segment.classList.toggle("is-active", index < activeStep);
+  });
 }
 
-function renderPuzzleEditor() {
-  tripTitleInput.value = appState.trip.title;
-  document.getElementById("puzzleEditor").innerHTML = `
-    ${renderTripIndexPanel()}
-    <div class="puzzle-board">
-      ${appState.trip.steps.map((step, index) => renderPuzzleRow(step, index)).join("")}
+function renderActionBar() {
+  const actionKey = appState.screen === "route" ? `route-${appState.routeMode}` : appState.screen;
+  const isEditingRoute = appState.screen === "route" && appState.routeMode === "edit";
+  headerBackButton.disabled = isEditingRoute;
+  headerBackButton.setAttribute("aria-disabled", String(isEditingRoute));
+  cancelEditButton.disabled = isEditingRoute && !appState.undoStack.length;
+  document.querySelectorAll("[data-actions-for]").forEach((row) => {
+    row.classList.toggle("is-active", row.dataset.actionsFor === actionKey);
+  });
+}
+
+function renderRoutePage() {
+  const isEditing = appState.routeMode === "edit";
+  document.getElementById("screen-route").classList.toggle("is-editing", isEditing);
+  document.getElementById("tripTitle").innerHTML = isEditing
+    ? `<input class="trip-title-input" value="${escapeAttr(appState.trip.title)}" data-trip-field="title" aria-label="路线名称">`
+    : escapeHtml(appState.trip.title);
+  document.querySelector(".metadata-chips").innerHTML = appState.trip.metadata
+    .map((item, index) => isEditing
+      ? `<span><input value="${escapeAttr(item)}" data-metadata-index="${index}" aria-label="路线标签 ${index + 1}"></span>`
+      : `<span>${escapeHtml(item)}</span>`)
+    .join("");
+  document.getElementById("routeEditor").innerHTML = `
+    <div class="route-list ${appState.routeMode === "edit" ? "is-editing" : ""}">
+      ${appState.trip.steps.map((step, index) => renderRouteRow(step, index)).join("")}
     </div>
   `;
 
-  tripIndexButton.setAttribute("aria-expanded", String(appState.isTripIndexOpen));
-
-  document.querySelectorAll("[data-step-field]").forEach((input) => {
-    input.addEventListener("input", updateStepField);
+  document.querySelectorAll("[data-trip-field]").forEach((input) => {
+    input.addEventListener("focus", rememberEditStart);
+    input.addEventListener("change", captureFieldUndo);
+    input.addEventListener("input", updateTripField);
+  });
+  document.querySelectorAll("[data-metadata-index]").forEach((input) => {
+    input.addEventListener("focus", rememberEditStart);
+    input.addEventListener("change", captureFieldUndo);
+    input.addEventListener("input", updateMetadataField);
+  });
+  document.querySelectorAll("[data-route-field]").forEach((input) => {
+    input.addEventListener("focus", rememberEditStart);
+    input.addEventListener("change", captureFieldUndo);
+    input.addEventListener("input", updateRouteField);
   });
   document.querySelectorAll("[data-insert-after]").forEach((button) => {
-    button.addEventListener("click", insertStepAfter);
+    button.addEventListener("click", insertRouteRow);
   });
-  document.querySelectorAll("[data-move]").forEach((button) => {
-    button.addEventListener("click", moveStep);
+  document.querySelectorAll("[data-delete-row]").forEach((button) => {
+    button.addEventListener("click", clearRouteContent);
   });
-  document.querySelectorAll("[data-delete-step]").forEach((button) => {
-    button.addEventListener("click", deleteStep);
+  document.querySelectorAll("[data-create-route]").forEach((button) => {
+    button.addEventListener("click", createRouteContent);
   });
-  document.querySelectorAll(".location-piece").forEach((card) => {
-    card.addEventListener("dragstart", handleDragStart);
-    card.addEventListener("dragend", handleDragEnd);
+  document.querySelectorAll("[data-clear-time]").forEach((button) => {
+    button.addEventListener("click", clearRouteTime);
   });
-  document.querySelectorAll("[data-focus-step]").forEach((button) => {
-    button.addEventListener("click", focusPuzzleStep);
+  document.querySelectorAll("[data-create-time]").forEach((button) => {
+    button.addEventListener("click", createRouteTime);
+  });
+  document.querySelectorAll("[data-drag-index]").forEach((card) => {
+    card.addEventListener("dragstart", startRouteDrag);
+    card.addEventListener("dragenter", enterRouteDropTarget);
+    card.addEventListener("dragover", moveOverRouteDropTarget);
+    card.addEventListener("dragleave", leaveRouteDropTarget);
+    card.addEventListener("drop", dropRouteCard);
+    card.addEventListener("dragend", endRouteDrag);
   });
 }
 
-function renderTripIndexPanel() {
-  if (!shouldShowTripIndex()) return "";
+function renderRouteRow(step, index) {
+  const isEditing = appState.routeMode === "edit";
+  const hasTimeLabel = Boolean(String(step.time || "").trim());
+  const hasRouteContent = Boolean(String(step.title || "").trim() || String(step.note || "").trim());
   return `
-    <aside class="trip-index-panel" aria-label="路线目录">
-      <p>路线目录</p>
-      <div>
-        ${appState.trip.steps.map((step, index) => `
-          <button class="${index === appState.focusedIndex ? "is-active" : ""}" type="button" data-focus-step="${index}">
-            <span>${escapeHtml(step.time || "--:--")}</span>
-            <b>${escapeHtml(step.title || `Location ${index + 1}`)}</b>
-          </button>
-        `).join("")}
+    <article class="route-row ${!hasTimeLabel ? "has-empty-time" : ""} ${!hasRouteContent ? "has-empty-route" : ""}">
+      <div class="time-block">
+        ${renderTimeBlockContent(step, index, isEditing, hasTimeLabel)}
       </div>
-    </aside>
-  `;
-}
-
-function shouldShowTripIndex() {
-  return appState.screen === "trip" && (appState.isTripIndexOpen || desktopRouteIndexQuery.matches);
-}
-
-function renderPuzzleRow(step, index) {
-  return `
-    <div class="puzzle-row ${index === appState.focusedIndex ? "is-focused" : ""}" data-puzzle-row="${index}">
-      <label class="time-piece">
-        <input value="${escapeAttr(step.time)}" data-step-field="time" data-index="${index}" aria-label="Time for ${escapeAttr(step.title)}">
-      </label>
-      <article class="location-piece ${appState.draggingIndex === index ? "is-dragging" : ""}" draggable="true" data-drag-index="${index}">
-        <input value="${escapeAttr(step.title)}" data-step-field="title" data-index="${index}" aria-label="Location title">
-        <div class="piece-details">
-          ${step.direction ? `<p>${escapeHtml(step.direction)}</p>` : ""}
-          ${step.note ? `<small>${escapeHtml(step.note)}</small>` : ""}
-          ${step.reminder ? `<em>${escapeHtml(step.reminder)}</em>` : ""}
-        </div>
-        <div class="move-controls" aria-label="Swap controls">
-          <button type="button" data-move="up" data-index="${index}" ${index === 0 ? "disabled" : ""}>Up</button>
-          <button type="button" data-move="down" data-index="${index}" ${index === appState.trip.steps.length - 1 ? "disabled" : ""}>Down</button>
-        </div>
-        <button class="delete-step-button" type="button" data-delete-step="${index}" aria-label="删除这个行程" ${appState.trip.steps.length === 1 ? "disabled" : ""}>×</button>
-      </article>
-    </div>
-    ${index < appState.trip.steps.length - 1 ? `
-      <button class="insert-button" type="button" data-insert-after="${index}" aria-label="Insert itinerary row">+</button>
+      <div class="route-block" ${isEditing && hasRouteContent ? `draggable="true" data-drag-index="${index}"` : ""}>
+        ${isEditing
+          ? renderEditableRouteContent(step, index)
+          : renderRouteContent(step)}
+      </div>
+      ${isEditing && hasTimeLabel ? `
+        <button class="delete-row-button" type="button" data-clear-time="${index}" aria-label="清空时间"></button>
+      ` : ""}
+    </article>
+    ${isEditing && index < appState.trip.steps.length - 1 ? `
+      <button class="insert-row-button" type="button" data-insert-after="${index}" aria-label="插入路线">+</button>
     ` : ""}
   `;
 }
 
-function updateStepField(event) {
-  const index = Number(event.target.dataset.index);
-  const field = event.target.dataset.stepField;
-  appState.trip.steps[index][field] = event.target.value;
-  if (field === "title" && appState.isTripIndexOpen) renderPuzzleEditor();
+function renderTimeBlockContent(step, index, isEditing, hasTimeLabel) {
+  if (isEditing && hasTimeLabel) {
+    return `<input value="${escapeAttr(step.time)}" data-route-field="time" data-index="${index}" aria-label="时间">`;
+  }
+  if (isEditing && appState.activeEmptyTimeIndex === index) {
+    return `<input value="" data-route-field="time" data-index="${index}" aria-label="时间">`;
+  }
+  if (isEditing && !hasTimeLabel) {
+    return `<button class="create-time-button" type="button" data-create-time="${index}" aria-label="新增时间">+</button>`;
+  }
+  return `<span>${escapeHtml(step.time || "")}</span>`;
 }
 
-function insertStepAfter(event) {
-  syncTripTitle();
+function renderRouteContent(step) {
+  if (!String(step.title || "").trim() && !String(step.note || "").trim()) return "";
+  return `
+    <strong>${escapeHtml(step.title)}</strong>
+    ${step.note ? `<p>${escapeHtml(step.note)}</p>` : ""}
+  `;
+}
+
+function renderEditableRouteContent(step, index) {
+  const hasRouteContent = Boolean(String(step.title || "").trim() || String(step.note || "").trim());
+  if (!hasRouteContent && appState.activeEmptyRouteIndex !== index) {
+    return `<button class="create-route-button" type="button" data-create-route="${index}" aria-label="新增路线内容">+</button>`;
+  }
+  return `
+    ${hasRouteContent ? `<button class="delete-route-button" type="button" data-delete-row="${index}" aria-label="清空路线内容"></button>` : ""}
+    <input class="route-title-input" value="${escapeAttr(step.title)}" data-route-field="title" data-index="${index}" draggable="false" aria-label="路线标题">
+    <textarea rows="2" data-route-field="note" data-index="${index}" draggable="false" aria-label="路线说明">${escapeHtml(step.note)}</textarea>
+    ${hasRouteContent ? `<span class="drag-handle-button" aria-hidden="true">≡</span>` : ""}
+  `;
+}
+
+function rememberEditStart(event) {
+  event.target.dataset.undoSnapshot = JSON.stringify(appState.trip);
+}
+
+function captureFieldUndo(event) {
+  const snapshot = event.target.dataset.undoSnapshot;
+  if (!snapshot) return;
+  if (snapshot !== JSON.stringify(appState.trip)) {
+    pushUndoSnapshot(JSON.parse(snapshot));
+  }
+  delete event.target.dataset.undoSnapshot;
+}
+
+function pushUndoSnapshot(snapshot = cloneTrip(appState.trip)) {
+  appState.undoStack.push(snapshot);
+  if (appState.undoStack.length > 30) appState.undoStack.shift();
+  renderActionBar();
+}
+
+function undoLastEdit() {
+  const previousTrip = appState.undoStack.pop();
+  if (!previousTrip) return;
+  appState.trip = previousTrip;
+  appState.routeMode = "edit";
+  renderRoutePage();
+  renderActionBar();
+}
+
+function updateTripField(event) {
+  appState.trip[event.target.dataset.tripField] = event.target.value;
+}
+
+function updateMetadataField(event) {
+  appState.trip.metadata[Number(event.target.dataset.metadataIndex)] = event.target.value;
+}
+
+function updateRouteField(event) {
+  const index = Number(event.target.dataset.index);
+  const field = event.target.dataset.routeField;
+  appState.trip.steps[index][field] = event.target.value;
+  if (field === "time" && String(event.target.value || "").trim()) {
+    appState.activeEmptyTimeIndex = null;
+  }
+  if (field !== "time" && String(event.target.value || "").trim()) {
+    appState.activeEmptyRouteIndex = null;
+  }
+}
+
+function insertRouteRow(event) {
   const index = Number(event.currentTarget.dataset.insertAfter);
+  pushUndoSnapshot();
   appState.trip.steps.splice(index + 1, 0, {
     time: "",
-    title: "New location",
-    direction: "",
-    note: "",
-    reminder: ""
+    title: "",
+    note: ""
   });
-  appState.focusedIndex = index + 1;
-  renderPuzzleEditor();
+  renderRoutePage();
 }
 
-function moveStep(event) {
-  syncTripTitle();
-  const index = Number(event.currentTarget.dataset.index);
-  const direction = event.currentTarget.dataset.move;
-  const nextIndex = direction === "up" ? index - 1 : index + 1;
-  if (!appState.trip.steps[nextIndex]) return;
-  const steps = appState.trip.steps;
-  [steps[index], steps[nextIndex]] = [steps[nextIndex], steps[index]];
-  appState.focusedIndex = nextIndex;
-  renderPuzzleEditor();
+function clearRouteContent(event) {
+  const index = Number(event.currentTarget.dataset.deleteRow);
+  if (!appState.trip.steps[index]) return;
+  pushUndoSnapshot();
+  appState.trip.steps[index].title = "";
+  appState.trip.steps[index].note = "";
+  appState.activeEmptyRouteIndex = null;
+  renderRoutePage();
 }
 
-function deleteStep(event) {
-  syncTripTitle();
-  const index = Number(event.currentTarget.dataset.deleteStep);
-  if (appState.trip.steps.length <= 1 || !appState.trip.steps[index]) return;
-  appState.trip.steps.splice(index, 1);
-  if (appState.focusedIndex === index) {
-    appState.focusedIndex = null;
-  } else if (appState.focusedIndex > index) {
-    appState.focusedIndex -= 1;
-  }
-  renderPuzzleEditor();
+function createRouteContent(event) {
+  const index = Number(event.currentTarget.dataset.createRoute);
+  if (!appState.trip.steps[index]) return;
+  appState.activeEmptyRouteIndex = index;
+  renderRoutePage();
 }
 
-function focusPuzzleStep(event) {
-  const index = Number(event.currentTarget.dataset.focusStep);
-  appState.focusedIndex = index;
-  appState.isTripIndexOpen = false;
-  renderPuzzleEditor();
-  const target = document.querySelector(`[data-puzzle-row="${index}"]`);
-  if (!target) return;
-  target.scrollIntoView({ behavior: "smooth", block: "center" });
+function clearRouteTime(event) {
+  const index = Number(event.currentTarget.dataset.clearTime);
+  if (!appState.trip.steps[index] || !appState.trip.steps[index].time) return;
+  pushUndoSnapshot();
+  appState.trip.steps[index].time = "";
+  appState.activeEmptyTimeIndex = null;
+  renderRoutePage();
 }
 
-function handleDragStart(event) {
-  appState.draggingIndex = Number(event.currentTarget.dataset.dragIndex);
+function createRouteTime(event) {
+  const index = Number(event.currentTarget.dataset.createTime);
+  if (!appState.trip.steps[index]) return;
+  appState.activeEmptyTimeIndex = index;
+  renderRoutePage();
+}
+
+function startRouteDrag(event) {
+  const index = Number(event.currentTarget.dataset.dragIndex);
+  appState.draggingRouteIndex = index;
   event.currentTarget.classList.add("is-dragging");
+  event.currentTarget.closest(".route-row")?.classList.add("is-dragging-row");
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", String(index));
 }
 
-function handleDragEnd(event) {
-  appState.draggingIndex = null;
-  event.currentTarget.classList.remove("is-dragging");
+function enterRouteDropTarget(event) {
+  const targetCard = event.currentTarget;
+  if (!hasDifferentDragTarget(targetCard)) return;
+  targetCard.classList.add("is-drop-target");
+  targetCard.closest(".route-row")?.classList.add("is-drop-target-row");
 }
 
-function renderCheckPreview() {
-  syncTripTitle();
-  document.getElementById("checkTitle").textContent = appState.trip.title;
-  document.getElementById("checkPreview").innerHTML = `
-    <section class="preview-panel">
-      <div class="route-summary">
-        <p>${escapeHtml(appState.trip.overview || "当前路线预览")}</p>
-        ${renderMetadataLine(appState.trip)}
-      </div>
-      ${appState.trip.steps.map((step, index) => `
-        <div class="check-row">
-          <span>${escapeHtml(step.time || "--:--")}</span>
-          <div>
-            <strong>${escapeHtml(step.title || `Location ${index + 1}`)}</strong>
-            ${step.direction ? `<small>${escapeHtml(step.direction)}</small>` : ""}
-            ${step.reminder ? `<em>${escapeHtml(step.reminder)}</em>` : ""}
-          </div>
-        </div>
-      `).join("")}
-      ${renderCompactInfo("准备", appState.trip.preparation)}
-      ${renderCompactInfo("提醒", appState.trip.warnings)}
-    </section>
-  `;
+function moveOverRouteDropTarget(event) {
+  if (!hasDifferentDragTarget(event.currentTarget)) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+}
+
+function leaveRouteDropTarget(event) {
+  if (event.currentTarget.contains(event.relatedTarget)) return;
+  event.currentTarget.classList.remove("is-drop-target");
+  event.currentTarget.closest(".route-row")?.classList.remove("is-drop-target-row");
+}
+
+function dropRouteCard(event) {
+  event.preventDefault();
+  const sourceIndex = Number(event.dataTransfer.getData("text/plain") || appState.draggingRouteIndex);
+  const targetIndex = Number(event.currentTarget.dataset.dragIndex);
+  clearRouteDragClasses();
+  if (!Number.isInteger(sourceIndex) || sourceIndex === targetIndex) return;
+  moveRoutePayload(sourceIndex, targetIndex);
+}
+
+function endRouteDrag() {
+  appState.draggingRouteIndex = null;
+  clearRouteDragClasses();
+}
+
+function hasDifferentDragTarget(card) {
+  return appState.draggingRouteIndex !== null && Number(card.dataset.dragIndex) !== appState.draggingRouteIndex;
+}
+
+function clearRouteDragClasses() {
+  document.querySelectorAll(".is-dragging, .is-dragging-row, .is-drop-target, .is-drop-target-row").forEach((node) => {
+    node.classList.remove("is-dragging", "is-dragging-row", "is-drop-target", "is-drop-target-row");
+  });
+}
+
+function moveRoutePayload(sourceIndex, targetIndex) {
+  if (!appState.trip.steps[sourceIndex] || !appState.trip.steps[targetIndex]) return;
+  pushUndoSnapshot();
+  if (!isFixedTimeStep(appState.trip.steps[sourceIndex]) && !isFixedTimeStep(appState.trip.steps[targetIndex])) {
+    [appState.trip.steps[sourceIndex], appState.trip.steps[targetIndex]] = [appState.trip.steps[targetIndex], appState.trip.steps[sourceIndex]];
+    renderRoutePage();
+    return;
+  }
+
+  const currentRoute = {
+    title: appState.trip.steps[sourceIndex].title,
+    note: appState.trip.steps[sourceIndex].note
+  };
+  appState.trip.steps[sourceIndex].title = appState.trip.steps[targetIndex].title;
+  appState.trip.steps[sourceIndex].note = appState.trip.steps[targetIndex].note;
+  appState.trip.steps[targetIndex].title = currentRoute.title;
+  appState.trip.steps[targetIndex].note = currentRoute.note;
+  renderRoutePage();
+}
+
+function isFixedTimeStep(step) {
+  return /^\d{1,2}:\d{2}$/.test(String(step.time || "").trim());
 }
 
 function renderTemplateSelection() {
@@ -471,51 +678,27 @@ function renderTemplateSelection() {
   });
 }
 
-function renderFinalPreview() {
-  syncTripTitle();
+function renderTemplatePreview() {
   const template = templateOptions.find((option) => option.id === appState.selectedTemplate) || templateOptions[0];
-  document.getElementById("finalMessage").textContent = "";
-  document.getElementById("finalPreview").innerHTML = `
-    <section class="final-card final-${escapeAttr(template.id)}">
+  document.getElementById("toastMessage").textContent = "";
+  document.getElementById("templatePreview").innerHTML = `
+    <section class="preview-card">
       <p>${escapeHtml(template.title)}</p>
       <h2>${escapeHtml(appState.trip.title)}</h2>
-      ${renderMetadataLine(appState.trip)}
-      <div class="final-route">
-        ${renderTemplateSteps(template.id)}
+      <div class="preview-route">
+        ${appState.trip.steps.map((step) => `
+          <div>
+            <span>${escapeHtml(step.time || "节点")}</span>
+            <strong>${escapeHtml(step.title)}</strong>
+          </div>
+        `).join("")}
       </div>
-      ${template.id !== "card" ? renderCompactInfo("提醒", appState.trip.warnings) : ""}
-      ${template.id === "detailed" ? renderCompactInfo("准备", appState.trip.preparation) : ""}
     </section>
   `;
 }
 
-function renderTemplateSteps(templateId) {
-  const steps = templateId === "card" ? appState.trip.steps.slice(0, 7) : appState.trip.steps;
-  return steps.map((step) => `
-    <div>
-      <span>${escapeHtml(step.time || "--:--")}</span>
-      <strong>${escapeHtml(step.title || "Location")}</strong>
-      ${templateId === "detailed" && step.reminder ? `<small>${escapeHtml(step.reminder)}</small>` : ""}
-    </div>
-  `).join("");
-}
-
-function renderMetadataLine(trip) {
-  const metadata = trip.metadata || {};
-  const parts = [metadata.distance, metadata.elevation, metadata.estimatedDuration].filter(Boolean);
-  if (!parts.length) return "";
-  return `<div class="meta-strip">${parts.map((part) => `<span>${escapeHtml(part)}</span>`).join("")}</div>`;
-}
-
-function renderCompactInfo(title, items = []) {
-  if (!items.length) return "";
-  return `
-    <div class="compact-info">
-      <b>${escapeHtml(title)}</b>
-      <p>${items.map(escapeHtml).join(" / ")}</p>
-    </div>
-  `;
-}
+// Future route index iteration placeholder:
+// keep route index out of the UI for this version, then reintroduce it here if navigation grows.
 
 function escapeHtml(value) {
   return String(value ?? "")
