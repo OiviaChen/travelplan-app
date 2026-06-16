@@ -359,6 +359,7 @@ input {
   border-radius: 8px;
   background: #fff;
   color: #111;
+  font-size: 20px;
   font-weight: 800;
 }
 
@@ -390,6 +391,7 @@ input {
   position: relative;
   z-index: 3;
   color: #666;
+  font-size: 20px;
   font-weight: 800;
   text-align: center;
   text-decoration: underline;
@@ -449,14 +451,14 @@ input {
   right: 16px;
   bottom: -20px;
   color: #777;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
 }
 
 .route-block strong {
   display: block;
   min-width: 0;
-  font-size: 11px;
+  font-size: 16px;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
@@ -464,14 +466,14 @@ input {
 .route-block p {
   margin: 0;
   color: #8e8e8e;
-  font-size: 11px;
+  font-size: 16px;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .route-title-input {
   padding-right: 28px;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 800;
   line-height: 1.35;
   cursor: text;
@@ -484,7 +486,7 @@ input {
   border-radius: 0;
   background: transparent;
   color: #8e8e8e;
-  font-size: 11px;
+  font-size: 16px;
   line-height: 1.35;
   resize: vertical;
   cursor: text;
@@ -594,7 +596,7 @@ input {
 }
 
 #screen-route.is-editing .route-title-input {
-  font-size: 11px;
+  font-size: 16px;
 }
 
 .button-row[data-actions-for="route-edit"] {
@@ -834,11 +836,6 @@ input {
 
   .route-block {
     padding: 24px 24px 24px 40px;
-  }
-
-  .route-block strong,
-  .route-title-input {
-    font-size: 18px;
   }
 
   .template-stack {
