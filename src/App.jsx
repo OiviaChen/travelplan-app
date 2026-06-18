@@ -56,7 +56,8 @@ const templateOptions = [
   {
     id: "detailed",
     title: "详细版路线",
-    subtitle: "适合A4打印"
+    subtitle: "适合A4打印",
+    disabled: true
   },
   {
     id: "card",
@@ -66,7 +67,8 @@ const templateOptions = [
   {
     id: "timeline",
     title: "时间轴路线",
-    subtitle: "适合打印放在手帐本里"
+    subtitle: "适合打印放在手帐本里",
+    disabled: true
   }
 ];
 
@@ -75,7 +77,7 @@ const sampleTripText = [
   ...defaultTrip.steps.map((step) => `${step.time} ${step.title} - ${step.note}`)
 ].join("\n");
 
-const homePlaceholder = "将文字攻略或者视频逐字稿粘贴进来，\n我将帮你生成旅行路线~";
+const homePlaceholder = "（有内置测试文字，可直接生成路线体验）\n将文字攻略或者视频逐字稿粘贴进来，\n我将帮你生成旅行路线~";
 
 const screenMeta = {
   home: { title: "你想去哪儿？", progress: 0 },
@@ -94,18 +96,36 @@ function cloneTrip(trip) {
   return JSON.parse(JSON.stringify(trip));
 }
 
+function getUtf8ByteLength(value) {
+  return new TextEncoder().encode(String(value || "")).length;
+}
+
+function inferTripTitle(text) {
+  const lines = String(text || "")
+    .split("\n")
+    .map((line) => cleanRouteContent(line))
+    .filter(Boolean);
+  const firstLine = lines[0] || "";
+  const destinationMatch = firstLine.match(/(?:去|到|游|逛)([^，。,.、\s]{2,16})/);
+  if (destinationMatch) return `${destinationMatch[1]}路线`;
+  return firstLine.slice(0, 18) || "旅行路线";
+}
+
 function buildTripFromInput(value) {
   const normalizedValue = String(value || "").trim();
-  if (!normalizedValue || normalizedValue === sampleTripText.trim()) return cloneTrip(defaultTrip);
+  if (!normalizedValue) return cloneTrip(defaultTrip);
 
-  const lines = normalizedValue
+  const sourceForParsing =
+    getUtf8ByteLength(normalizedValue) < 30 ? `${normalizedValue}\n${sampleTripText}` : normalizedValue;
+
+  const lines = sourceForParsing
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
 
   return {
-    title: "杭州之行",
-    metadata: [inferDifficulty(normalizedValue), inferRouteType(normalizedValue), inferDistanceLabel(normalizedValue)],
+    title: inferTripTitle(sourceForParsing),
+    metadata: [inferDifficulty(sourceForParsing), inferRouteType(sourceForParsing), inferDistanceLabel(sourceForParsing)],
     steps: lines.slice(0, 8).map(parseRouteLine)
   };
 }
@@ -532,11 +552,17 @@ function App() {
   function handleGenerateRoute() {
     setTrip(buildTripFromInput(sourceText));
     setRouteMode("view");
-    setSelectedTemplate("detailed");
+    setSelectedTemplate("card");
     goToScreen("route");
   }
 
   function chooseTemplate(templateId) {
+    const nextTemplate = templateOptions.find((template) => template.id === templateId);
+    if (nextTemplate?.disabled) {
+      setToastMessage("暂未开放");
+      return;
+    }
+
     setSelectedTemplate(templateId);
     goToScreen("preview");
   }
@@ -832,6 +858,7 @@ function App() {
           isActive={screen === "template"}
           selectedTemplate={selectedTemplate}
           onSelectTemplate={chooseTemplate}
+          toastMessage={toastMessage}
         />
         <PreviewScreen
           isActive={screen === "preview"}
@@ -1270,14 +1297,15 @@ function EditableRouteContent({
   );
 }
 
-function TemplateScreen({ isActive, selectedTemplate, onSelectTemplate }) {
+function TemplateScreen({ isActive, selectedTemplate, onSelectTemplate, toastMessage }) {
   return (
     <section className={`screen ${isActive ? "is-active" : ""}`} id="screen-template">
       <div className="template-stack" id="templateStack">
         {templateOptions.map((template) => (
           <button
-            className={`template-card ${template.id === selectedTemplate ? "is-selected" : ""}`}
+            className={`template-card ${template.id === selectedTemplate ? "is-selected" : ""} ${template.disabled ? "is-disabled" : ""}`}
             type="button"
+            aria-disabled={String(Boolean(template.disabled))}
             data-template={template.id}
             key={template.id}
             onClick={() => onSelectTemplate(template.id)}
@@ -1290,6 +1318,9 @@ function TemplateScreen({ isActive, selectedTemplate, onSelectTemplate }) {
           </button>
         ))}
       </div>
+      <p className="status-message template-status" aria-live="polite">
+        {toastMessage}
+      </p>
     </section>
   );
 }
