@@ -1,9 +1,18 @@
 Travel Journal Route App Prototype
 
-Open index.html in a browser to run the prototype.
+Run the React prototype with Vite:
 
-Files:
+- npm install
+- npm run dev
+
+Build check:
+
+- npm run build
+
+Main files:
+
 - index.html
+- src/main.jsx
+- src/App.jsx
 - style.css
-- script.js
 - prototype-screenshot.png

@@ -133,36 +133,36 @@ button {
   padding-bottom: 48px;
 }
 
-.app-shell:has(#screen-home.is-active) .app-header {
+.app-shell[data-screen="home"] .app-header {
   display: none;
 }
 
-.app-shell:has(#screen-route.is-active) .app-header {
+.app-shell[data-screen="route"] .app-header {
   position: relative;
   grid-template-columns: 48px minmax(0, 1fr);
   gap: 20px;
   padding: calc(40px + env(safe-area-inset-top)) max(28px, env(safe-area-inset-left)) 32px max(28px, env(safe-area-inset-right));
 }
 
-.app-shell:has(#screen-route.is-active) .back-icon-button {
+.app-shell[data-screen="route"] .back-icon-button {
   margin-top: 8px;
 }
 
-.app-shell:has(#screen-route.is-active) .app-header h1 {
+.app-shell[data-screen="route"] .app-header h1 {
   font-size: 30px;
   line-height: 1.18;
 }
 
-.app-shell:has(#screen-route.is-active) .header-copy {
+.app-shell[data-screen="route"] .header-copy {
   gap: 8px;
 }
 
-.app-shell:has(#screen-route.is-active) .progress-segments {
+.app-shell[data-screen="route"] .progress-segments {
   gap: 4px;
   width: 228px;
 }
 
-.app-shell:has(#screen-route.is-active) .progress-segments span {
+.app-shell[data-screen="route"] .progress-segments span {
   height: 16px;
   border-radius: 16px;
 }
@@ -383,7 +383,7 @@ input {
   background: #fff;
 }
 
-.route-list.is-editing .route-row.has-empty-time .time-block:has(input) {
+.route-list.is-editing .route-row.is-filling-empty-time .time-block {
   border-style: solid;
 }
 
@@ -424,7 +424,7 @@ input {
   cursor: default;
 }
 
-.route-list.is-editing .route-row.has-empty-route .route-block:has(.route-title-input) {
+.route-list.is-editing .route-row.has-empty-route .route-block.is-filling-empty-route {
   place-items: stretch;
   border-style: solid;
 }
@@ -738,11 +738,11 @@ input {
   pointer-events: none;
 }
 
-.app-shell:has(#screen-home.is-active) .app-bottom-bar {
+.app-shell[data-screen="home"] .app-bottom-bar {
   display: none;
 }
 
-.app-shell:has(#screen-route.is-active) .app-bottom-bar {
+.app-shell[data-screen="route"] .app-bottom-bar {
   padding: 16px max(32px, env(safe-area-inset-left)) calc(32px + env(safe-area-inset-bottom)) max(32px, env(safe-area-inset-right));
 }
 

@@ -1,78 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>旅行路线生成器</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="app-shell">
-    <header class="app-header">
-      <button class="back-icon-button" id="headerBackButton" type="button" aria-label="返回上一页">&lt;</button>
-      <div class="header-copy">
-        <h1 id="screenTitle">你想去哪儿？</h1>
-        <div class="progress-segments" id="progressSegments" aria-label="进度">
-          <span class="is-active"></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-    </header>
-
-    <main class="app-main">
-      <section class="screen is-active" id="screen-home">
-        <h2 class="home-title">你想去哪里?</h2>
-        <label class="home-input-block">
-          <textarea id="sourceText" rows="14" placeholder="粘贴攻略内容..."></textarea>
-        </label>
-        <div class="home-action-row">
-          <button class="primary-button" id="generateButton" type="button">生成路线</button>
-        </div>
-      </section>
-
-      <section class="screen" id="screen-route">
-        <section class="route-hero">
-          <h2 id="tripTitle">杭州之行</h2>
-          <div class="metadata-chips" aria-label="路线标签">
-            <span>简单</span>
-            <span>城市徒步</span>
-            <span>5km</span>
-          </div>
-        </section>
-        <div id="routeEditor"></div>
-      </section>
-
-      <section class="screen" id="screen-template">
-        <div class="template-stack" id="templateStack"></div>
-      </section>
-
-      <section class="screen" id="screen-preview">
-        <div id="templatePreview"></div>
-        <p class="status-message" id="toastMessage" aria-live="polite"></p>
-      </section>
-    </main>
-
-    <footer class="app-bottom-bar">
-      <div class="button-row two-up" data-actions-for="route-view">
-        <button class="secondary-button" id="editRouteButton" type="button">修改</button>
-        <button class="primary-button" data-go="template" type="button">生成路线图</button>
-      </div>
-      <div class="button-row two-up" data-actions-for="route-edit">
-        <button class="secondary-button" id="cancelEditButton" type="button">撤回</button>
-        <button class="primary-button" id="finishEditButton" type="button">完成</button>
-      </div>
-      <div class="button-row two-up" data-actions-for="template">
-        <button class="secondary-button" data-go="route" type="button">Back</button>
-        <button class="primary-button" data-go="preview" type="button">Next</button>
-      </div>
-      <div class="button-row two-up" data-actions-for="preview">
-        <button class="secondary-button" id="createNewButton" type="button">创建新路线</button>
-        <button class="primary-button" id="downloadButton" type="button">下载</button>
-      </div>
-    </footer>
-  </div>
-
-  <script src="script.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>旅行路线生成器</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
