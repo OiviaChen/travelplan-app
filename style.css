@@ -10,6 +10,8 @@ body {
   overflow-x: hidden;
   background: #f2f2f2;
   color: #111;
+  color-scheme: light;
+  forced-color-adjust: none;
   font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
@@ -20,6 +22,9 @@ body {
 button,
 input,
 textarea {
+  appearance: none;
+  -webkit-appearance: none;
+  color-scheme: light;
   font: inherit;
 }
 
@@ -31,6 +36,7 @@ input,
 textarea,
 button {
   max-width: 100%;
+  forced-color-adjust: none;
 }
 
 .app-shell {
@@ -42,6 +48,8 @@ button {
   min-height: 100dvh;
   margin: 0;
   background: #fff;
+  color-scheme: light;
+  forced-color-adjust: none;
 }
 
 .app-header {
@@ -113,6 +121,8 @@ button {
 
 .app-main {
   flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 
@@ -137,32 +147,44 @@ button {
   display: none;
 }
 
-.app-shell[data-screen="route"] .app-header {
+.app-shell[data-screen="route"] .app-header,
+.app-shell[data-screen="template"] .app-header,
+.app-shell[data-screen="preview"] .app-header {
   position: relative;
   grid-template-columns: 48px minmax(0, 1fr);
   gap: 20px;
   padding: calc(40px + env(safe-area-inset-top)) max(28px, env(safe-area-inset-left)) 32px max(28px, env(safe-area-inset-right));
 }
 
-.app-shell[data-screen="route"] .back-icon-button {
+.app-shell[data-screen="route"] .back-icon-button,
+.app-shell[data-screen="template"] .back-icon-button,
+.app-shell[data-screen="preview"] .back-icon-button {
   margin-top: 8px;
 }
 
-.app-shell[data-screen="route"] .app-header h1 {
+.app-shell[data-screen="route"] .app-header h1,
+.app-shell[data-screen="template"] .app-header h1,
+.app-shell[data-screen="preview"] .app-header h1 {
   font-size: 30px;
   line-height: 1.18;
 }
 
-.app-shell[data-screen="route"] .header-copy {
+.app-shell[data-screen="route"] .header-copy,
+.app-shell[data-screen="template"] .header-copy,
+.app-shell[data-screen="preview"] .header-copy {
   gap: 8px;
 }
 
-.app-shell[data-screen="route"] .progress-segments {
+.app-shell[data-screen="route"] .progress-segments,
+.app-shell[data-screen="template"] .progress-segments,
+.app-shell[data-screen="preview"] .progress-segments {
   gap: 4px;
   width: 228px;
 }
 
-.app-shell[data-screen="route"] .progress-segments span {
+.app-shell[data-screen="route"] .progress-segments span,
+.app-shell[data-screen="template"] .progress-segments span,
+.app-shell[data-screen="preview"] .progress-segments span {
   height: 16px;
   border-radius: 16px;
 }
@@ -619,57 +641,87 @@ input {
 
 .template-stack {
   display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  align-self: stretch;
   gap: 24px;
+  width: 100%;
+  min-height: 100%;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .template-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 88px;
+  grid-template-columns: minmax(0, 1fr) minmax(64px, 84px);
   align-items: center;
   gap: 16px;
   width: 100%;
-  min-height: 96px;
-  padding: 24px;
-  border: 2px solid transparent;
-  border-radius: 16px;
-  background: #d8d8d8;
+  min-height: 0;
+  padding: 24px 16px 24px 24px;
+  border: 1px solid #111;
+  border-radius: 10px;
+  background: #fff;
   color: #111;
   text-align: left;
+}
+
+#screen-template.is-active {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1 1 auto;
+  padding-bottom: 24px;
 }
 
 .template-card span {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .template-card b {
-  font-size: 18px;
-  line-height: 1.25;
+  font-size: 16px;
+  line-height: 1.18;
 }
 
 .template-card small {
-  color: #333;
-  font-size: 14px;
+  color: #b8b8b8;
+  font-size: 16px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.18;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .template-card i {
   display: block;
-  width: 88px;
+  width: 100%;
+  max-width: 84px;
   height: 64px;
-  border-radius: 8px;
-  background: #aaa;
+  border-radius: 0;
+  background: #d9d9d9;
 }
 
 .template-card.is-selected {
   border-color: #111;
-  background: #c8c8c8;
+  border-width: 2px;
+  background: #f7f7f7;
+}
+
+#screen-preview {
+  padding-top: 64px;
+}
+
+#templatePreview {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .preview-card {
   display: grid;
   gap: 16px;
+  width: 100%;
   min-height: 520px;
   padding: 24px;
   border-radius: 16px;
@@ -718,6 +770,100 @@ input {
   overflow-wrap: anywhere;
 }
 
+.small-card-stage {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding-top: 57px;
+}
+
+.sticky-route-card {
+  position: relative;
+  width: 354px;
+  max-width: calc(100vw - 48px);
+  background: #dadada;
+  color: #000;
+  color-scheme: light;
+  forced-color-adjust: none;
+  padding: 32px 24px;
+  border-radius: 0;
+  font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  box-shadow: none;
+}
+
+.sticky-route-card::before {
+  content: "";
+  position: absolute;
+  top: -55px;
+  left: 0;
+  width: 255px;
+  height: 57px;
+  background: #dadada;
+  clip-path: polygon(10px 0, 245px 0, 255px 57px, 0 57px);
+}
+
+.small-card-field {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #000;
+  color-scheme: light;
+  forced-color-adjust: none;
+  font-family: inherit;
+  field-sizing: content;
+  min-width: 0;
+  outline: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  resize: none;
+}
+
+.small-card-field:focus {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.small-card-title {
+  margin: 0;
+  height: auto;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+.small-card-route {
+  min-height: 0;
+  margin: 40px 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.83;
+  text-align: justify;
+}
+
+.small-card-meta {
+  min-height: 0;
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.83;
+}
+
+.small-card-divider {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 1px;
+  background: #000;
+}
+
 .status-message {
   min-height: 24px;
   margin: 16px 0 0;
@@ -739,6 +885,10 @@ input {
 }
 
 .app-shell[data-screen="home"] .app-bottom-bar {
+  display: none;
+}
+
+.app-shell[data-screen="template"] .app-bottom-bar {
   display: none;
 }
 
@@ -885,8 +1035,7 @@ input {
   .home-action-row,
   .route-hero,
   .route-list,
-  .template-stack,
-  .preview-card {
+  .template-stack {
     max-width: 760px;
     margin-right: auto;
     margin-left: auto;

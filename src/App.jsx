@@ -55,8 +55,8 @@ const defaultTrip = {
 const templateOptions = [
   {
     id: "detailed",
-    title: "详细路线",
-    subtitle: "适合 A4 打印"
+    title: "详细版路线",
+    subtitle: "适合A4打印"
   },
   {
     id: "card",
@@ -251,6 +251,100 @@ function isFixedTimeStep(step) {
   return /^\d{1,2}:\d{2}$/.test(String(step.time || "").trim());
 }
 
+function normalizePreviewText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function buildCardRouteStep(step) {
+  const title = normalizePreviewText(step?.title);
+  return title;
+}
+
+function buildCardRouteText(steps) {
+  const routeSteps = (steps || []).map(buildCardRouteStep).filter(Boolean);
+  if (!routeSteps.length) return "未填写路线";
+
+  return routeSteps.map((step, index) => (index === 0 ? step : `→ ${step}`)).join("\n");
+}
+
+function buildCardMetadataText(trip) {
+  const meta = trip?.meta || trip?.metadata;
+  if (Array.isArray(meta)) return meta.map(normalizePreviewText).filter(Boolean).join(" ");
+  return normalizePreviewText(meta);
+}
+
+function makeTripSignature(trip) {
+  return JSON.stringify({
+    title: trip?.title || "",
+    meta: trip?.meta || trip?.metadata || "",
+    steps: (trip?.steps || []).map((step) => ({
+      time: step.time || "",
+      title: step.title || "",
+      note: step.note || ""
+    }))
+  });
+}
+
+function wrapCanvasText(context, text, maxWidth) {
+  return String(text || "")
+    .split("\n")
+    .flatMap((line) => {
+      const source = line || " ";
+      const chars = Array.from(source);
+      const lines = [];
+      let current = "";
+
+      chars.forEach((char) => {
+        const next = `${current}${char}`;
+        if (current && context.measureText(next).width > maxWidth) {
+          lines.push(current);
+          current = char;
+        } else {
+          current = next;
+        }
+      });
+
+      lines.push(current);
+      return lines;
+    });
+}
+
+function getSafeDownloadName(value) {
+  const name = normalizePreviewText(value).replace(/[\\/:*?"<>|]/g, "-");
+  return name || "route-card";
+}
+
+function canvasToPngBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Canvas export failed"));
+        return;
+      }
+
+      resolve(blob);
+    }, "image/png");
+  });
+}
+
+function triggerBrowserDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function isMobileShareTarget() {
+  const userAgent = navigator.userAgent || "";
+  const isMobileUserAgent = /Android|iPhone|iPad|iPod/i.test(userAgent);
+  const isCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
+  return Boolean(isMobileUserAgent || (isCoarsePointer && window.innerWidth <= 820));
+}
+
 function App() {
   const [screen, setScreen] = useState("home");
   const [routeMode, setRouteMode] = useState("view");
@@ -287,6 +381,11 @@ function App() {
     setRouteMode("view");
     setSelectedTemplate("detailed");
     goToScreen("route");
+  }
+
+  function chooseTemplate(templateId) {
+    setSelectedTemplate(templateId);
+    goToScreen("preview");
   }
 
   function handleBack() {
@@ -476,6 +575,108 @@ function App() {
     });
   }
 
+  async function downloadSmallCard() {
+    const card = document.getElementById("smallCardExport");
+    if (!card) {
+      setToastMessage("请先选择小卡路线图。");
+      return;
+    }
+
+    setToastMessage("正在生成下载图片...");
+    const title = card.querySelector(".small-card-title")?.value || "";
+    const route = card.querySelector(".small-card-route")?.value || "";
+    const meta = card.querySelector(".small-card-meta")?.value || "";
+    const scale = Math.max(2, window.devicePixelRatio || 1);
+    const cardWidth = Math.round(card.getBoundingClientRect().width || 354);
+    const tabVisibleHeight = 55;
+    const tabWidth = 255;
+    const tabHeight = 57;
+    const paddingX = 24;
+    const paddingY = 32;
+    const contentWidth = cardWidth - paddingX * 2;
+    const titleFont = "700 20px Arial, PingFang SC, Microsoft YaHei, sans-serif";
+    const bodyFont = "700 16px Arial, PingFang SC, Microsoft YaHei, sans-serif";
+    const titleLineHeight = 36;
+    const bodyLineHeight = 29;
+    const routeGap = 40;
+    const metaGap = 16;
+    const dividerHeight = 1;
+    const background = "#dadada";
+
+    const measureCanvas = document.createElement("canvas");
+    const measureContext = measureCanvas.getContext("2d");
+    measureContext.font = titleFont;
+    const titleLines = wrapCanvasText(measureContext, title, contentWidth);
+    measureContext.font = bodyFont;
+    const routeLines = wrapCanvasText(measureContext, route, contentWidth);
+    const metaLines = wrapCanvasText(measureContext, meta, contentWidth);
+    const titleHeight = Math.max(titleLineHeight, titleLines.length * titleLineHeight);
+    const routeHeight = Math.max(bodyLineHeight * 3, routeLines.length * bodyLineHeight);
+    const metaHeight = Math.max(bodyLineHeight, metaLines.length * bodyLineHeight);
+    const cardHeight =
+      paddingY + titleHeight + dividerHeight + routeGap + routeHeight + routeGap + dividerHeight + metaGap + metaHeight + paddingY;
+    const canvas = document.createElement("canvas");
+    canvas.width = cardWidth * scale;
+    canvas.height = (tabVisibleHeight + cardHeight) * scale;
+    const context = canvas.getContext("2d");
+    context.scale(scale, scale);
+
+    context.fillStyle = background;
+    context.beginPath();
+    context.moveTo(10, 0);
+    context.lineTo(tabWidth - 10, 0);
+    context.lineTo(tabWidth, tabHeight);
+    context.lineTo(0, tabHeight);
+    context.closePath();
+    context.fill();
+    context.fillRect(0, tabVisibleHeight, cardWidth, cardHeight);
+
+    function drawLines(lines, x, y, font, lineHeight) {
+      context.fillStyle = "#000";
+      context.font = font;
+      context.textBaseline = "top";
+      lines.forEach((line, index) => {
+        context.fillText(line, x, y + index * lineHeight);
+      });
+    }
+
+    let y = tabVisibleHeight + paddingY;
+    drawLines(titleLines, paddingX, y, titleFont, titleLineHeight);
+    y += titleHeight;
+    context.fillRect(paddingX, y, contentWidth, dividerHeight);
+    y += dividerHeight + routeGap;
+    drawLines(routeLines, paddingX, y, bodyFont, bodyLineHeight);
+    y += routeHeight + routeGap;
+    context.fillRect(paddingX, y, contentWidth, dividerHeight);
+    y += dividerHeight + metaGap;
+    drawLines(metaLines, paddingX, y, bodyFont, bodyLineHeight);
+
+    const filename = `${getSafeDownloadName(title || trip.title)}.png`;
+    try {
+      const blob = await canvasToPngBlob(canvas);
+      const file = new File([blob], filename, { type: "image/png" });
+
+      if (isMobileShareTarget() && navigator.canShare?.({ files: [file] }) && navigator.share) {
+        await navigator.share({
+          files: [file],
+          title: filename,
+          text: "保存这张路线小卡"
+        });
+        setToastMessage("已打开保存面板，可选择存储图像到相册。");
+        return;
+      }
+
+      triggerBrowserDownload(blob, filename);
+      setToastMessage("已开始下载，请在浏览器下载记录中查看。");
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        setToastMessage("已取消保存。");
+        return;
+      }
+      setToastMessage("下载失败，请稍后再试。");
+    }
+  }
+
   return (
     <div className="app-shell" data-screen={screen}>
       <AppHeader
@@ -521,7 +722,7 @@ function App() {
         <TemplateScreen
           isActive={screen === "template"}
           selectedTemplate={selectedTemplate}
-          onSelectTemplate={setSelectedTemplate}
+          onSelectTemplate={chooseTemplate}
         />
         <PreviewScreen
           isActive={screen === "preview"}
@@ -536,7 +737,7 @@ function App() {
         routeMode={routeMode}
         screen={screen}
         onCreateNewRoute={createNewRoute}
-        onDownload={() => setToastMessage("下载已准备好。当前原型暂不生成真实文件。")}
+        onDownload={downloadSmallCard}
         onFinishEdit={finishEditMode}
         onGoToScreen={goToScreen}
         onStartEdit={startEditMode}
@@ -981,22 +1182,74 @@ function TemplateScreen({ isActive, selectedTemplate, onSelectTemplate }) {
 
 function PreviewScreen({ isActive, selectedTemplate, toastMessage, trip }) {
   const template = templateOptions.find((option) => option.id === selectedTemplate) || templateOptions[0];
+  const tripSignature = makeTripSignature(trip);
+  const isCardTemplate = selectedTemplate === "card";
+  const [cardText, setCardText] = useState(() => ({
+    title: trip.title || "",
+    route: buildCardRouteText(trip.steps),
+    meta: buildCardMetadataText(trip)
+  }));
+
+  useEffect(() => {
+    if (!isActive) return;
+    setCardText({
+      title: trip.title || "",
+      route: buildCardRouteText(trip.steps),
+      meta: buildCardMetadataText(trip)
+    });
+  }, [isActive, tripSignature]);
+
+  function updateCardField(field, value) {
+    setCardText((current) => ({
+      ...current,
+      [field]: value
+    }));
+  }
 
   return (
     <section className={`screen ${isActive ? "is-active" : ""}`} id="screen-preview">
       <div id="templatePreview">
-        <section className="preview-card">
-          <p>{template.title}</p>
-          <h2>{trip.title}</h2>
-          <div className="preview-route">
-            {trip.steps.map((step, index) => (
-              <div key={index}>
-                <span>{step.time || "节点"}</span>
-                <strong>{step.title}</strong>
-              </div>
-            ))}
-          </div>
-        </section>
+        {isCardTemplate ? (
+          <section className="small-card-stage" aria-label={template.title}>
+            <article className="sticky-route-card" id="smallCardExport">
+              <input
+                className="small-card-field small-card-title"
+                value={cardText.title}
+                aria-label="小卡路线标题"
+                onChange={(event) => updateCardField("title", event.target.value)}
+              />
+              <div className="small-card-divider" aria-hidden="true" />
+              <textarea
+                className="small-card-field small-card-route"
+                value={cardText.route}
+                rows={Math.max(3, cardText.route.split("\n").length)}
+                aria-label="小卡路线内容"
+                onChange={(event) => updateCardField("route", event.target.value)}
+              />
+              <div className="small-card-divider" aria-hidden="true" />
+              <textarea
+                className="small-card-field small-card-meta"
+                value={cardText.meta}
+                rows={Math.max(1, cardText.meta.split("\n").length)}
+                aria-label="小卡路线信息"
+                onChange={(event) => updateCardField("meta", event.target.value)}
+              />
+            </article>
+          </section>
+        ) : (
+          <section className="preview-card">
+            <p>{template.title}</p>
+            <h2>{trip.title}</h2>
+            <div className="preview-route">
+              {trip.steps.map((step, index) => (
+                <div key={index}>
+                  <span>{step.time || "节点"}</span>
+                  <strong>{step.title}</strong>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
       <p className="status-message" id="toastMessage" aria-live="polite">
         {toastMessage}
@@ -1024,14 +1277,6 @@ function BottomBar({ canUndo, routeMode, screen, onCreateNewRoute, onDownload, o
         </button>
         <button className="primary-button" id="finishEditButton" type="button" onClick={onFinishEdit}>
           完成
-        </button>
-      </div>
-      <div className={`button-row two-up ${actionKey === "template" ? "is-active" : ""}`} data-actions-for="template">
-        <button className="secondary-button" data-go="route" type="button" onClick={() => onGoToScreen("route")}>
-          Back
-        </button>
-        <button className="primary-button" data-go="preview" type="button" onClick={() => onGoToScreen("preview")}>
-          Next
         </button>
       </div>
       <div className={`button-row two-up ${actionKey === "preview" ? "is-active" : ""}`} data-actions-for="preview">
