@@ -345,6 +345,157 @@ function isMobileShareTarget() {
   return Boolean(isMobileUserAgent || (isCoarsePointer && window.innerWidth <= 820));
 }
 
+const routeCardExportBase = {
+  width: 354,
+  tabVisibleHeight: 55,
+  tabWidth: 255,
+  tabHeight: 57,
+  tabInset: 10,
+  paddingX: 24,
+  paddingY: 32,
+  titleSize: 20,
+  bodySize: 16,
+  titleLineHeight: 36,
+  bodyLineHeight: 29,
+  routeGap: 40,
+  metaGap: 16,
+  dividerHeight: 1,
+  background: "#dadada",
+  text: "#000"
+};
+
+const printExportSize = {
+  a4Width: 2480,
+  a4Height: 3508,
+  cardWidth: 850,
+  firstCardX: 200,
+  secondCardX: 1130,
+  cardY: 360,
+  helperX: 200,
+  helperY: 200,
+  helperLineGap: 84,
+  helperFontSize: 50
+};
+
+function getSmallCardExportText(trip) {
+  const card = document.getElementById("smallCardExport");
+  return {
+    title: card?.querySelector(".small-card-title")?.value || trip.title || "",
+    route: card?.querySelector(".small-card-route")?.value || buildCardRouteText(trip.steps),
+    meta: card?.querySelector(".small-card-meta")?.value || buildCardMetadataText(trip)
+  };
+}
+
+function drawRouteCard(context, { x, y, width, title, route, meta }) {
+  const ratio = width / routeCardExportBase.width;
+  const tabVisibleHeight = routeCardExportBase.tabVisibleHeight * ratio;
+  const tabWidth = routeCardExportBase.tabWidth * ratio;
+  const tabHeight = routeCardExportBase.tabHeight * ratio;
+  const tabInset = routeCardExportBase.tabInset * ratio;
+  const paddingX = routeCardExportBase.paddingX * ratio;
+  const paddingY = routeCardExportBase.paddingY * ratio;
+  const contentWidth = width - paddingX * 2;
+  const titleFont = `700 ${routeCardExportBase.titleSize * ratio}px Arial, PingFang SC, Microsoft YaHei, sans-serif`;
+  const bodyFont = `700 ${routeCardExportBase.bodySize * ratio}px Arial, PingFang SC, Microsoft YaHei, sans-serif`;
+  const titleLineHeight = routeCardExportBase.titleLineHeight * ratio;
+  const bodyLineHeight = routeCardExportBase.bodyLineHeight * ratio;
+  const routeGap = routeCardExportBase.routeGap * ratio;
+  const metaGap = routeCardExportBase.metaGap * ratio;
+  const dividerHeight = Math.max(1, routeCardExportBase.dividerHeight * ratio);
+
+  context.font = titleFont;
+  const titleLines = wrapCanvasText(context, title, contentWidth);
+  context.font = bodyFont;
+  const routeLines = wrapCanvasText(context, route, contentWidth);
+  const metaLines = wrapCanvasText(context, meta, contentWidth);
+  const titleHeight = Math.max(titleLineHeight, titleLines.length * titleLineHeight);
+  const routeHeight = Math.max(bodyLineHeight * 3, routeLines.length * bodyLineHeight);
+  const metaHeight = Math.max(bodyLineHeight, metaLines.length * bodyLineHeight);
+  const cardHeight =
+    paddingY + titleHeight + dividerHeight + routeGap + routeHeight + routeGap + dividerHeight + metaGap + metaHeight + paddingY;
+
+  context.fillStyle = routeCardExportBase.background;
+  context.beginPath();
+  context.moveTo(x + tabInset, y);
+  context.lineTo(x + tabWidth - tabInset, y);
+  context.lineTo(x + tabWidth, y + tabHeight);
+  context.lineTo(x, y + tabHeight);
+  context.closePath();
+  context.fill();
+  context.fillRect(x, y + tabVisibleHeight, width, cardHeight);
+
+  function drawLines(lines, lineX, lineY, font, lineHeight) {
+    context.fillStyle = routeCardExportBase.text;
+    context.font = font;
+    context.textBaseline = "top";
+    lines.forEach((line, index) => {
+      context.fillText(line, lineX, lineY + index * lineHeight);
+    });
+  }
+
+  let currentY = y + tabVisibleHeight + paddingY;
+  drawLines(titleLines, x + paddingX, currentY, titleFont, titleLineHeight);
+  currentY += titleHeight;
+  context.fillStyle = routeCardExportBase.text;
+  context.fillRect(x + paddingX, currentY, contentWidth, dividerHeight);
+  currentY += dividerHeight + routeGap;
+  drawLines(routeLines, x + paddingX, currentY, bodyFont, bodyLineHeight);
+  currentY += routeHeight + routeGap;
+  context.fillStyle = routeCardExportBase.text;
+  context.fillRect(x + paddingX, currentY, contentWidth, dividerHeight);
+  currentY += dividerHeight + metaGap;
+  drawLines(metaLines, x + paddingX, currentY, bodyFont, bodyLineHeight);
+
+  return {
+    width,
+    height: tabVisibleHeight + cardHeight
+  };
+}
+
+function createSmallCardCanvas({ title, route, meta, width = printExportSize.cardWidth }) {
+  const measureCanvas = document.createElement("canvas");
+  const measureContext = measureCanvas.getContext("2d");
+  const size = drawRouteCard(measureContext, { x: 0, y: 0, width, title, route, meta });
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(size.width);
+  canvas.height = Math.ceil(size.height);
+  const context = canvas.getContext("2d");
+  drawRouteCard(context, { x: 0, y: 0, width, title, route, meta });
+  return canvas;
+}
+
+function createA4Canvas({ title, route, meta }) {
+  const canvas = document.createElement("canvas");
+  canvas.width = printExportSize.a4Width;
+  canvas.height = printExportSize.a4Height;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#fff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = "#9c9c9c";
+  context.font = `400 ${printExportSize.helperFontSize}px Arial, PingFang SC, Microsoft YaHei, sans-serif`;
+  context.textBaseline = "top";
+  context.fillText("按 100% 比例打印", printExportSize.helperX, printExportSize.helperY);
+  context.fillText("沿小卡边缘裁剪，空白部分可裁去", printExportSize.helperX, printExportSize.helperY + printExportSize.helperLineGap);
+  drawRouteCard(context, {
+    x: printExportSize.firstCardX,
+    y: printExportSize.cardY,
+    width: printExportSize.cardWidth,
+    title,
+    route,
+    meta
+  });
+  drawRouteCard(context, {
+    x: printExportSize.secondCardX,
+    y: printExportSize.cardY,
+    width: printExportSize.cardWidth,
+    title,
+    route,
+    meta
+  });
+  return canvas;
+}
+
 function App() {
   const [screen, setScreen] = useState("home");
   const [routeMode, setRouteMode] = useState("view");
@@ -354,6 +505,7 @@ function App() {
   const [dropTargetIndex, setDropTargetIndex] = useState(null);
   const [activeEmptyTimeIndex, setActiveEmptyTimeIndex] = useState(null);
   const [activeEmptyRouteIndex, setActiveEmptyRouteIndex] = useState(null);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [trip, setTrip] = useState(() => cloneTrip(defaultTrip));
   const [sourceText, setSourceText] = useState("");
   const [toastMessage, setToastMessage] = useState("");
@@ -374,6 +526,7 @@ function App() {
     setScreen(nextScreen);
     if (nextScreen !== "route") setRouteMode("view");
     if (nextScreen === "preview") setToastMessage("");
+    setIsDownloadModalOpen(false);
   }
 
   function handleGenerateRoute() {
@@ -406,6 +559,21 @@ function App() {
     setActiveEmptyRouteIndex(null);
   }
 
+  function createNewRoute() {
+    setTrip(cloneTrip(defaultTrip));
+    setRouteMode("view");
+    setSelectedTemplate("detailed");
+    setUndoStack([]);
+    setDraggingRouteIndex(null);
+    setDropTargetIndex(null);
+    setActiveEmptyTimeIndex(null);
+    setActiveEmptyRouteIndex(null);
+    setIsDownloadModalOpen(false);
+    setSourceText("");
+    setToastMessage("");
+    goToScreen("home");
+  }
+
   function undoLastEdit() {
     setUndoStack((current) => {
       const previousTrip = current[current.length - 1];
@@ -414,18 +582,6 @@ function App() {
       setRouteMode("edit");
       return current.slice(0, -1);
     });
-  }
-
-  function createNewRoute() {
-    setTrip(cloneTrip(defaultTrip));
-    setRouteMode("view");
-    setSelectedTemplate("detailed");
-    setUndoStack([]);
-    setActiveEmptyTimeIndex(null);
-    setActiveEmptyRouteIndex(null);
-    setSourceText("");
-    setToastMessage("");
-    goToScreen("home");
   }
 
   function rememberEditStart() {
@@ -582,76 +738,27 @@ function App() {
       return;
     }
 
-    setToastMessage("正在生成下载图片...");
-    const title = card.querySelector(".small-card-title")?.value || "";
-    const route = card.querySelector(".small-card-route")?.value || "";
-    const meta = card.querySelector(".small-card-meta")?.value || "";
-    const scale = Math.max(2, window.devicePixelRatio || 1);
-    const cardWidth = Math.round(card.getBoundingClientRect().width || 354);
-    const tabVisibleHeight = 55;
-    const tabWidth = 255;
-    const tabHeight = 57;
-    const paddingX = 24;
-    const paddingY = 32;
-    const contentWidth = cardWidth - paddingX * 2;
-    const titleFont = "700 20px Arial, PingFang SC, Microsoft YaHei, sans-serif";
-    const bodyFont = "700 16px Arial, PingFang SC, Microsoft YaHei, sans-serif";
-    const titleLineHeight = 36;
-    const bodyLineHeight = 29;
-    const routeGap = 40;
-    const metaGap = 16;
-    const dividerHeight = 1;
-    const background = "#dadada";
+    const { title, route, meta } = getSmallCardExportText(trip);
+    const canvas = createSmallCardCanvas({ title, route, meta });
+    const filename = `${getSafeDownloadName(title || trip.title)}.png`;
+    await saveCanvasImage(canvas, filename, "保存这张路线小卡");
+  }
 
-    const measureCanvas = document.createElement("canvas");
-    const measureContext = measureCanvas.getContext("2d");
-    measureContext.font = titleFont;
-    const titleLines = wrapCanvasText(measureContext, title, contentWidth);
-    measureContext.font = bodyFont;
-    const routeLines = wrapCanvasText(measureContext, route, contentWidth);
-    const metaLines = wrapCanvasText(measureContext, meta, contentWidth);
-    const titleHeight = Math.max(titleLineHeight, titleLines.length * titleLineHeight);
-    const routeHeight = Math.max(bodyLineHeight * 3, routeLines.length * bodyLineHeight);
-    const metaHeight = Math.max(bodyLineHeight, metaLines.length * bodyLineHeight);
-    const cardHeight =
-      paddingY + titleHeight + dividerHeight + routeGap + routeHeight + routeGap + dividerHeight + metaGap + metaHeight + paddingY;
-    const canvas = document.createElement("canvas");
-    canvas.width = cardWidth * scale;
-    canvas.height = (tabVisibleHeight + cardHeight) * scale;
-    const context = canvas.getContext("2d");
-    context.scale(scale, scale);
-
-    context.fillStyle = background;
-    context.beginPath();
-    context.moveTo(10, 0);
-    context.lineTo(tabWidth - 10, 0);
-    context.lineTo(tabWidth, tabHeight);
-    context.lineTo(0, tabHeight);
-    context.closePath();
-    context.fill();
-    context.fillRect(0, tabVisibleHeight, cardWidth, cardHeight);
-
-    function drawLines(lines, x, y, font, lineHeight) {
-      context.fillStyle = "#000";
-      context.font = font;
-      context.textBaseline = "top";
-      lines.forEach((line, index) => {
-        context.fillText(line, x, y + index * lineHeight);
-      });
+  async function downloadA4Print() {
+    if (!document.getElementById("smallCardExport")) {
+      setToastMessage("请先选择小卡路线图。");
+      return;
     }
 
-    let y = tabVisibleHeight + paddingY;
-    drawLines(titleLines, paddingX, y, titleFont, titleLineHeight);
-    y += titleHeight;
-    context.fillRect(paddingX, y, contentWidth, dividerHeight);
-    y += dividerHeight + routeGap;
-    drawLines(routeLines, paddingX, y, bodyFont, bodyLineHeight);
-    y += routeHeight + routeGap;
-    context.fillRect(paddingX, y, contentWidth, dividerHeight);
-    y += dividerHeight + metaGap;
-    drawLines(metaLines, paddingX, y, bodyFont, bodyLineHeight);
+    const { title, route, meta } = getSmallCardExportText(trip);
+    const canvas = createA4Canvas({ title, route, meta });
+    const filename = `${getSafeDownloadName(title || trip.title)}-A4打印版.png`;
+    await saveCanvasImage(canvas, filename, "保存这张 A4 打印版路线小卡");
+  }
 
-    const filename = `${getSafeDownloadName(title || trip.title)}.png`;
+  async function saveCanvasImage(canvas, filename, shareText) {
+    setIsDownloadModalOpen(false);
+    setToastMessage("正在生成下载图片...");
     try {
       const blob = await canvasToPngBlob(canvas);
       const file = new File([blob], filename, { type: "image/png" });
@@ -660,14 +767,16 @@ function App() {
         await navigator.share({
           files: [file],
           title: filename,
-          text: "保存这张路线小卡"
+          text: shareText
         });
-        setToastMessage("已打开保存面板，可选择存储图像到相册。");
+        setToastMessage("");
+        setIsDownloadModalOpen(true);
         return;
       }
 
       triggerBrowserDownload(blob, filename);
-      setToastMessage("已开始下载，请在浏览器下载记录中查看。");
+      setToastMessage("");
+      setIsDownloadModalOpen(true);
     } catch (error) {
       if (error?.name === "AbortError") {
         setToastMessage("已取消保存。");
@@ -736,12 +845,17 @@ function App() {
         canUndo={undoStack.length > 0}
         routeMode={routeMode}
         screen={screen}
-        onCreateNewRoute={createNewRoute}
-        onDownload={downloadSmallCard}
+        onDownloadA4={downloadA4Print}
+        onDownloadCard={downloadSmallCard}
         onFinishEdit={finishEditMode}
         onGoToScreen={goToScreen}
         onStartEdit={startEditMode}
         onUndo={undoLastEdit}
+      />
+      <DownloadSuccessModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        onCreateNewRoute={createNewRoute}
       />
     </div>
   );
@@ -1258,7 +1372,7 @@ function PreviewScreen({ isActive, selectedTemplate, toastMessage, trip }) {
   );
 }
 
-function BottomBar({ canUndo, routeMode, screen, onCreateNewRoute, onDownload, onFinishEdit, onGoToScreen, onStartEdit, onUndo }) {
+function BottomBar({ canUndo, routeMode, screen, onDownloadA4, onDownloadCard, onFinishEdit, onGoToScreen, onStartEdit, onUndo }) {
   const actionKey = screen === "route" ? `route-${routeMode}` : screen;
 
   return (
@@ -1280,14 +1394,37 @@ function BottomBar({ canUndo, routeMode, screen, onCreateNewRoute, onDownload, o
         </button>
       </div>
       <div className={`button-row two-up ${actionKey === "preview" ? "is-active" : ""}`} data-actions-for="preview">
-        <button className="secondary-button" id="createNewButton" type="button" onClick={onCreateNewRoute}>
-          创建新路线
+        <button className="secondary-button" id="downloadA4Button" type="button" onClick={onDownloadA4}>
+          A4打印版
         </button>
-        <button className="primary-button" id="downloadButton" type="button" onClick={onDownload}>
-          下载
+        <button className="primary-button" id="downloadCardButton" type="button" onClick={onDownloadCard}>
+          下载小卡
         </button>
       </div>
     </footer>
+  );
+}
+
+function DownloadSuccessModal({ isOpen, onClose, onCreateNewRoute }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section
+        className="download-success-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="downloadSuccessTitle"
+      >
+        <button className="modal-close-button" type="button" aria-label="关闭弹窗" onClick={onClose}>
+          ×
+        </button>
+        <p id="downloadSuccessTitle">下载成功</p>
+        <button className="primary-button modal-primary-action" type="button" onClick={onCreateNewRoute}>
+          创建新路程
+        </button>
+      </section>
+    </div>
   );
 }
 
