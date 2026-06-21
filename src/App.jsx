@@ -56,8 +56,7 @@ const templateOptions = [
   {
     id: "detailed",
     title: "详细版路线",
-    subtitle: "适合A4打印",
-    disabled: true
+    subtitle: "适合A4打印"
   },
   {
     id: "card",
@@ -67,8 +66,43 @@ const templateOptions = [
   {
     id: "timeline",
     title: "时间轴路线",
-    subtitle: "适合打印放在手帐本里",
-    disabled: true
+    subtitle: "适合打印放在手帐本里"
+  }
+];
+
+const timelineSizeOptions = [
+  {
+    id: "passport",
+    label: "TN 护照尺寸",
+    widthMm: 89,
+    heightMm: 124
+  },
+  {
+    id: "standard",
+    label: "TN 标准尺寸",
+    widthMm: 110,
+    heightMm: 210
+  }
+];
+
+const purposeOptions = [
+  {
+    id: "detailed",
+    title: "详细旅行行程",
+    subtitle: "出行前打印详细路线",
+    templateId: "detailed"
+  },
+  {
+    id: "card",
+    title: "行程小卡",
+    subtitle: "随身携带/总结行程",
+    templateId: "card"
+  },
+  {
+    id: "timeline",
+    title: "时间轴",
+    subtitle: "旅行手帐",
+    templateId: "timeline"
   }
 ];
 
@@ -80,16 +114,20 @@ const sampleTripText = [
 const homePlaceholder = "（有内置测试文字，可直接生成路线体验）\n将文字攻略或者视频逐字稿粘贴进来，\n我将帮你生成旅行路线~";
 
 const screenMeta = {
-  home: { title: "你想去哪儿？", progress: 0 },
-  route: { title: "路线编辑", progress: 1 },
+  purpose: { title: "你想制作什么？", progress: 0 },
+  home: { title: "导入行程", progress: 1 },
+  route: { title: "路线编辑", progress: 2 },
   template: { title: "选择模版", progress: 2 },
-  preview: { title: "打印预览", progress: 3 }
+  templateEdit: { title: "打印编辑", progress: 3 },
+  preview: { title: "打印预览", progress: 4 }
 };
 
 const previousScreen = {
+  home: "purpose",
   route: "home",
-  template: "route",
-  preview: "template"
+  template: "preview",
+  templateEdit: "route",
+  preview: "templateEdit"
 };
 
 function cloneTrip(trip) {
@@ -293,6 +331,110 @@ function buildCardMetadataText(trip) {
   return normalizePreviewText(meta);
 }
 
+function buildDetailedRouteText(steps) {
+  const detailSteps = (steps || [])
+    .map((step) => {
+      const time = normalizePreviewText(step?.time);
+      const title = normalizePreviewText(step?.title);
+      const note = normalizePreviewText(step?.note);
+      if (!title && !note) return "";
+      return [time, title, note].filter(Boolean).join("｜");
+    })
+    .filter(Boolean);
+  return detailSteps.length ? detailSteps.join("\n") : "未填写路线";
+}
+
+function buildTimelineRouteText(steps) {
+  const timelineSteps = (steps || [])
+    .map((step) => {
+      const time = normalizePreviewText(step?.time);
+      const title = normalizePreviewText(step?.title);
+      if (!title) return "";
+      return isFixedTimeStep(step) ? `${time}  ${title}` : title;
+    })
+    .filter(Boolean);
+  return timelineSteps.length ? timelineSteps.join("\n") : "未填写路线";
+}
+
+function getTimelineSizeOption(sizeId) {
+  return timelineSizeOptions.find((option) => option.id === sizeId) || timelineSizeOptions[0];
+}
+
+function getNextTimelineSizeId(currentSizeId, direction = 1) {
+  const currentIndex = timelineSizeOptions.findIndex((option) => option.id === currentSizeId);
+  const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+  const nextIndex = (safeIndex + direction + timelineSizeOptions.length) % timelineSizeOptions.length;
+  return timelineSizeOptions[nextIndex].id;
+}
+
+function parseTimelineLine(line) {
+  const source = String(line || "").replace(/\s+/g, " ").trim();
+  const timeMatch = source.match(/^(\d{1,2}[:：]\d{2})\s*(.*)$/);
+  if (!source) return null;
+
+  return {
+    hasTime: Boolean(timeMatch),
+    time: timeMatch ? timeMatch[1].replace("：", ":") : "",
+    text: timeMatch ? normalizePreviewText(timeMatch[2]) : source
+  };
+}
+
+function getTimelineItems(routeText) {
+  const items = String(routeText || "")
+    .split("\n")
+    .map(parseTimelineLine)
+    .filter(Boolean);
+  return items.length ? items : [{ hasTime: false, time: "", text: "未填写路线" }];
+}
+
+function createTemplateDraft(trip, templateId = "card") {
+  const metadata = buildCardMetadataText(trip);
+  const title = trip?.title || "";
+  const routeBuilders = {
+    detailed: () => buildDetailedRouteText(trip?.steps || []),
+    card: () => buildCardRouteText(trip?.steps || []),
+    timeline: () => buildTimelineRouteText(trip?.steps || [])
+  };
+  const metaBuilders = {
+    detailed: () => `${metadata}\n适合 A4 打印，可保留详细交通、停留和提醒。`.trim(),
+    card: () => metadata,
+    timeline: () => `${metadata}\n按时间顺序查看每个节点。`.trim()
+  };
+
+  return {
+    title,
+    route: (routeBuilders[templateId] || routeBuilders.card)(),
+    meta: (metaBuilders[templateId] || metaBuilders.card)(),
+    visible: {
+      title: true,
+      route: true,
+      meta: true
+    }
+  };
+}
+
+function createTemplateDrafts(trip) {
+  return templateOptions.reduce((drafts, template) => {
+    drafts[template.id] = createTemplateDraft(trip, template.id);
+    return drafts;
+  }, {});
+}
+
+function getVisibleTemplateText(templateDraft) {
+  const draft = templateDraft || createTemplateDraft(defaultTrip);
+  return {
+    title: draft.visible?.title ? draft.title : "",
+    route: draft.visible?.route ? draft.route : "",
+    meta: draft.visible?.meta ? draft.meta : ""
+  };
+}
+
+function getTemplateShortTitle(templateId) {
+  if (templateId === "card") return "小卡";
+  if (templateId === "timeline") return "时间轴";
+  return "详细版路线";
+}
+
 function makeTripSignature(trip) {
   return JSON.stringify({
     title: trip?.title || "",
@@ -397,15 +539,6 @@ const printExportSize = {
   helperFontSize: 50
 };
 
-function getSmallCardExportText(trip) {
-  const card = document.getElementById("smallCardExport");
-  return {
-    title: card?.querySelector(".small-card-title")?.value || trip.title || "",
-    route: card?.querySelector(".small-card-route")?.value || buildCardRouteText(trip.steps),
-    meta: card?.querySelector(".small-card-meta")?.value || buildCardMetadataText(trip)
-  };
-}
-
 function drawRouteCard(context, { x, y, width, title, route, meta }) {
   const ratio = width / routeCardExportBase.width;
   const tabVisibleHeight = routeCardExportBase.tabVisibleHeight * ratio;
@@ -423,16 +556,51 @@ function drawRouteCard(context, { x, y, width, title, route, meta }) {
   const metaGap = routeCardExportBase.metaGap * ratio;
   const dividerHeight = Math.max(1, routeCardExportBase.dividerHeight * ratio);
 
-  context.font = titleFont;
-  const titleLines = wrapCanvasText(context, title, contentWidth);
-  context.font = bodyFont;
-  const routeLines = wrapCanvasText(context, route, contentWidth);
-  const metaLines = wrapCanvasText(context, meta, contentWidth);
-  const titleHeight = Math.max(titleLineHeight, titleLines.length * titleLineHeight);
-  const routeHeight = Math.max(bodyLineHeight * 3, routeLines.length * bodyLineHeight);
-  const metaHeight = Math.max(bodyLineHeight, metaLines.length * bodyLineHeight);
-  const cardHeight =
-    paddingY + titleHeight + dividerHeight + routeGap + routeHeight + routeGap + dividerHeight + metaGap + metaHeight + paddingY;
+  const sections = [];
+  if (normalizePreviewText(title)) {
+    context.font = titleFont;
+    sections.push({
+      kind: "title",
+      lines: wrapCanvasText(context, title, contentWidth),
+      font: titleFont,
+      lineHeight: titleLineHeight
+    });
+  }
+  if (normalizePreviewText(route)) {
+    context.font = bodyFont;
+    sections.push({
+      kind: "route",
+      lines: wrapCanvasText(context, route, contentWidth),
+      font: bodyFont,
+      lineHeight: bodyLineHeight,
+      minHeight: bodyLineHeight * 3
+    });
+  }
+  if (normalizePreviewText(meta)) {
+    context.font = bodyFont;
+    sections.push({
+      kind: "meta",
+      lines: wrapCanvasText(context, meta, contentWidth),
+      font: bodyFont,
+      lineHeight: bodyLineHeight
+    });
+  }
+  if (!sections.length) {
+    context.font = bodyFont;
+    sections.push({
+      kind: "route",
+      lines: wrapCanvasText(context, "未填写路线", contentWidth),
+      font: bodyFont,
+      lineHeight: bodyLineHeight,
+      minHeight: bodyLineHeight
+    });
+  }
+  const sectionHeights = sections.map((section) =>
+    Math.max(section.minHeight || section.lineHeight, section.lines.length * section.lineHeight)
+  );
+  const dividerCount = Math.max(0, sections.length - 1);
+  const contentHeight = sectionHeights.reduce((total, height) => total + height, 0);
+  const cardHeight = paddingY + contentHeight + dividerCount * dividerHeight + dividerCount * routeGap + paddingY;
 
   context.fillStyle = routeCardExportBase.background;
   context.beginPath();
@@ -454,17 +622,15 @@ function drawRouteCard(context, { x, y, width, title, route, meta }) {
   }
 
   let currentY = y + tabVisibleHeight + paddingY;
-  drawLines(titleLines, x + paddingX, currentY, titleFont, titleLineHeight);
-  currentY += titleHeight;
-  context.fillStyle = routeCardExportBase.text;
-  context.fillRect(x + paddingX, currentY, contentWidth, dividerHeight);
-  currentY += dividerHeight + routeGap;
-  drawLines(routeLines, x + paddingX, currentY, bodyFont, bodyLineHeight);
-  currentY += routeHeight + routeGap;
-  context.fillStyle = routeCardExportBase.text;
-  context.fillRect(x + paddingX, currentY, contentWidth, dividerHeight);
-  currentY += dividerHeight + metaGap;
-  drawLines(metaLines, x + paddingX, currentY, bodyFont, bodyLineHeight);
+  sections.forEach((section, index) => {
+    drawLines(section.lines, x + paddingX, currentY, section.font, section.lineHeight);
+    currentY += sectionHeights[index];
+    if (index < sections.length - 1) {
+      context.fillStyle = routeCardExportBase.text;
+      context.fillRect(x + paddingX, currentY, contentWidth, dividerHeight);
+      currentY += dividerHeight + routeGap;
+    }
+  });
 
   return {
     width,
@@ -517,26 +683,69 @@ function createA4Canvas({ title, route, meta }) {
 }
 
 function App() {
-  const [screen, setScreen] = useState("home");
+  const [screen, setScreen] = useState("purpose");
   const [routeMode, setRouteMode] = useState("view");
-  const [selectedTemplate, setSelectedTemplate] = useState("detailed");
+  const [selectedPurpose, setSelectedPurpose] = useState("card");
+  const [selectedTemplate, setSelectedTemplate] = useState("card");
+  const [selectedTimelineSize, setSelectedTimelineSize] = useState("passport");
+  const [templateDrafts, setTemplateDrafts] = useState(() => createTemplateDrafts(defaultTrip));
   const [undoStack, setUndoStack] = useState([]);
   const [draggingRouteIndex, setDraggingRouteIndex] = useState(null);
   const [dropTargetIndex, setDropTargetIndex] = useState(null);
-  const [activeEmptyTimeIndex, setActiveEmptyTimeIndex] = useState(null);
-  const [activeEmptyRouteIndex, setActiveEmptyRouteIndex] = useState(null);
+  const [editingRouteIndex, setEditingRouteIndex] = useState(null);
+  const [editingHeaderField, setEditingHeaderField] = useState(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [trip, setTrip] = useState(() => cloneTrip(defaultTrip));
   const [sourceText, setSourceText] = useState("");
   const [toastMessage, setToastMessage] = useState("");
   const editSnapshotRef = useRef(null);
+  const meta = screenMeta[screen];
+  const currentTemplateDraft = templateDrafts[selectedTemplate] || createTemplateDraft(trip, selectedTemplate);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [screen]);
 
-  const meta = screenMeta[screen];
-  const isEditingRoute = screen === "route" && routeMode === "edit";
+  useEffect(() => {
+    if (screen !== "route" || editingRouteIndex === null) return;
+    const titleInput = document.querySelector(`[data-route-field="title"][data-index="${editingRouteIndex}"]`);
+    if (titleInput instanceof HTMLElement) titleInput.focus();
+  }, [screen, editingRouteIndex, trip.steps.length]);
+
+  useEffect(() => {
+    if (screen !== "route" || editingHeaderField === null) return;
+    const headerInput = document.querySelector(`[data-header-field="${editingHeaderField}"]`);
+    if (headerInput instanceof HTMLElement) headerInput.focus();
+  }, [screen, editingHeaderField]);
+
+  useEffect(() => {
+    if (screen !== "route") return;
+
+    function closeLocalEdit(event) {
+      if (editingRouteIndex === null && editingHeaderField === null) return;
+      if (event.target instanceof Element && event.target.closest("[data-route-edit-scope]")) return;
+      setEditingRouteIndex(null);
+      setEditingHeaderField(null);
+    }
+
+    document.addEventListener("pointerdown", closeLocalEdit);
+    return () => document.removeEventListener("pointerdown", closeLocalEdit);
+  }, [screen, editingRouteIndex, editingHeaderField]);
+
+  useEffect(() => {
+    if (selectedTemplate !== "timeline" || (screen !== "templateEdit" && screen !== "preview")) return;
+
+    function switchTimelineSize(event) {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      const target = event.target;
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
+      event.preventDefault();
+      setSelectedTimelineSize((current) => getNextTimelineSizeId(current, event.key === "ArrowRight" ? 1 : -1));
+    }
+
+    window.addEventListener("keydown", switchTimelineSize);
+    return () => window.removeEventListener("keydown", switchTimelineSize);
+  }, [screen, selectedTemplate]);
 
   function pushUndoSnapshot(snapshot = cloneTrip(trip)) {
     setUndoStack((current) => [...current, snapshot].slice(-30));
@@ -544,60 +753,95 @@ function App() {
 
   function goToScreen(nextScreen) {
     setScreen(nextScreen);
-    if (nextScreen !== "route") setRouteMode("view");
+    if (nextScreen !== "route") {
+      setRouteMode("view");
+      setEditingRouteIndex(null);
+      setEditingHeaderField(null);
+    }
     if (nextScreen === "preview") setToastMessage("");
     setIsDownloadModalOpen(false);
   }
 
   function handleGenerateRoute() {
-    setTrip(buildTripFromInput(sourceText));
+    const purpose = purposeOptions.find((option) => option.id === selectedPurpose) || purposeOptions[1];
+    const generatedTrip = buildTripFromInput(sourceText);
+    setTrip(generatedTrip);
+    setTemplateDrafts(createTemplateDrafts(generatedTrip));
     setRouteMode("view");
-    setSelectedTemplate("card");
+    setSelectedTemplate(purpose.templateId);
     goToScreen("route");
   }
 
-  function chooseTemplate(templateId) {
-    const nextTemplate = templateOptions.find((template) => template.id === templateId);
-    if (nextTemplate?.disabled) {
-      setToastMessage("暂未开放");
-      return;
-    }
+  function choosePurpose(purposeId) {
+    const purpose = purposeOptions.find((option) => option.id === purposeId) || purposeOptions[1];
+    setSelectedPurpose(purpose.id);
+    setSelectedTemplate(purpose.templateId);
+    goToScreen("home");
+  }
 
+  function chooseTemplate(templateId) {
     setSelectedTemplate(templateId);
-    goToScreen("preview");
+    goToScreen("templateEdit");
+  }
+
+  function updateTemplateDraftField(field, value) {
+    setTemplateDrafts((current) => ({
+      ...current,
+      [selectedTemplate]: {
+        ...(current[selectedTemplate] || createTemplateDraft(trip, selectedTemplate)),
+        [field]: value
+      }
+    }));
+  }
+
+  function toggleTemplateDraftField(field) {
+    setTemplateDrafts((current) => {
+      const draft = current[selectedTemplate] || createTemplateDraft(trip, selectedTemplate);
+      return {
+        ...current,
+        [selectedTemplate]: {
+          ...draft,
+          visible: {
+            ...draft.visible,
+            [field]: !draft.visible?.[field]
+          }
+        }
+      }
+    });
   }
 
   function handleBack() {
     const target = previousScreen[screen];
-    if (!target || isEditingRoute) return;
+    if (!target) return;
     goToScreen(target);
   }
 
   function startEditMode() {
-    setRouteMode("edit");
-    setUndoStack([]);
+    setRouteMode("view");
   }
 
   function finishEditMode() {
     setRouteMode("view");
     setUndoStack([]);
-    setActiveEmptyTimeIndex(null);
-    setActiveEmptyRouteIndex(null);
+    setEditingRouteIndex(null);
+    setEditingHeaderField(null);
   }
 
   function createNewRoute() {
     setTrip(cloneTrip(defaultTrip));
     setRouteMode("view");
-    setSelectedTemplate("detailed");
+    setSelectedPurpose("card");
+    setSelectedTemplate("card");
+    setTemplateDrafts(createTemplateDrafts(defaultTrip));
     setUndoStack([]);
     setDraggingRouteIndex(null);
     setDropTargetIndex(null);
-    setActiveEmptyTimeIndex(null);
-    setActiveEmptyRouteIndex(null);
+    setEditingRouteIndex(null);
+    setEditingHeaderField(null);
     setIsDownloadModalOpen(false);
     setSourceText("");
     setToastMessage("");
-    goToScreen("home");
+    goToScreen("purpose");
   }
 
   function undoLastEdit() {
@@ -605,7 +849,7 @@ function App() {
       const previousTrip = current[current.length - 1];
       if (!previousTrip) return current;
       setTrip(previousTrip);
-      setRouteMode("edit");
+      setRouteMode("view");
       return current.slice(0, -1);
     });
   }
@@ -647,13 +891,6 @@ function App() {
       ...current,
       steps: current.steps.map((step, stepIndex) => (stepIndex === index ? { ...step, [field]: value } : step))
     }));
-
-    if (field === "time" && String(value || "").trim()) {
-      setActiveEmptyTimeIndex(null);
-    }
-    if (field !== "time" && String(value || "").trim()) {
-      setActiveEmptyRouteIndex(null);
-    }
   }
 
   function insertRouteRow(index) {
@@ -666,36 +903,29 @@ function App() {
         ...current.steps.slice(index + 1)
       ]
     }));
+    setEditingRouteIndex(index + 1);
+    setEditingHeaderField(null);
   }
 
-  function clearRouteContent(index) {
+  function deleteRouteRow(index) {
     if (!trip.steps[index]) return;
     pushUndoSnapshot();
-    setTrip((current) => ({
-      ...current,
-      steps: current.steps.map((step, stepIndex) => (stepIndex === index ? { ...step, title: "", note: "" } : step))
-    }));
-    setActiveEmptyRouteIndex(null);
-  }
+    const currentLength = trip.steps.length;
+    setTrip((current) => {
+      if (current.steps.length <= 1) {
+        return {
+          ...current,
+          steps: [{ time: "", title: "", note: "" }]
+        };
+      }
 
-  function createRouteContent(index) {
-    if (!trip.steps[index]) return;
-    setActiveEmptyRouteIndex(index);
-  }
-
-  function clearRouteTime(index) {
-    if (!trip.steps[index]?.time) return;
-    pushUndoSnapshot();
-    setTrip((current) => ({
-      ...current,
-      steps: current.steps.map((step, stepIndex) => (stepIndex === index ? { ...step, time: "" } : step))
-    }));
-    setActiveEmptyTimeIndex(null);
-  }
-
-  function createRouteTime(index) {
-    if (!trip.steps[index]) return;
-    setActiveEmptyTimeIndex(index);
+      return {
+        ...current,
+        steps: current.steps.filter((_, stepIndex) => stepIndex !== index)
+      };
+    });
+    setEditingRouteIndex(currentLength <= 1 ? 0 : Math.min(index, currentLength - 2));
+    setEditingHeaderField(null);
   }
 
   function startRouteDrag(event, index) {
@@ -736,9 +966,9 @@ function App() {
   }
 
   function moveRoutePayload(sourceIndex, targetIndex) {
-    if (!trip.steps[sourceIndex] || !trip.steps[targetIndex]) return;
     pushUndoSnapshot();
     setTrip((current) => {
+      if (!current.steps[sourceIndex] || !current.steps[targetIndex]) return current;
       const steps = current.steps.map((step) => ({ ...step }));
       if (!isFixedTimeStep(steps[sourceIndex]) && !isFixedTimeStep(steps[targetIndex])) {
         [steps[sourceIndex], steps[targetIndex]] = [steps[targetIndex], steps[sourceIndex]];
@@ -757,28 +987,25 @@ function App() {
     });
   }
 
-  async function downloadSmallCard() {
-    const card = document.getElementById("smallCardExport");
-    if (!card) {
-      setToastMessage("请先选择小卡路线图。");
-      return;
-    }
+  function moveSelectedRoute(index, direction) {
+    const targetIndex = index + direction;
+    if (!trip.steps[index] || !trip.steps[targetIndex]) return;
+    moveRoutePayload(index, targetIndex);
+    setEditingRouteIndex(targetIndex);
+    setEditingHeaderField(null);
+  }
 
-    const { title, route, meta } = getSmallCardExportText(trip);
+  async function downloadSmallCard() {
+    const { title, route, meta } = getVisibleTemplateText(currentTemplateDraft);
     const canvas = createSmallCardCanvas({ title, route, meta });
-    const filename = `${getSafeDownloadName(title || trip.title)}.png`;
+    const filename = `${getSafeDownloadName(title || currentTemplateDraft.title || trip.title)}.png`;
     await saveCanvasImage(canvas, filename, "保存这张路线小卡");
   }
 
   async function downloadA4Print() {
-    if (!document.getElementById("smallCardExport")) {
-      setToastMessage("请先选择小卡路线图。");
-      return;
-    }
-
-    const { title, route, meta } = getSmallCardExportText(trip);
+    const { title, route, meta } = getVisibleTemplateText(currentTemplateDraft);
     const canvas = createA4Canvas({ title, route, meta });
-    const filename = `${getSafeDownloadName(title || trip.title)}-A4打印版.png`;
+    const filename = `${getSafeDownloadName(title || currentTemplateDraft.title || trip.title)}-A4打印版.png`;
     await saveCanvasImage(canvas, filename, "保存这张 A4 打印版路线小卡");
   }
 
@@ -817,12 +1044,17 @@ function App() {
       <AppHeader
         title={meta.title}
         progress={meta.progress}
-        showBack={screen !== "home"}
-        backDisabled={isEditingRoute}
+        showBack={screen !== "purpose"}
+        backDisabled={false}
         onBack={handleBack}
       />
 
       <main className="app-main">
+        <PurposeScreen
+          isActive={screen === "purpose"}
+          selectedPurpose={selectedPurpose}
+          onSelectPurpose={choosePurpose}
+        />
         <HomeScreen
           isActive={screen === "home"}
           sourceText={sourceText}
@@ -830,39 +1062,50 @@ function App() {
           onGenerate={handleGenerateRoute}
         />
         <RouteScreen
-          activeEmptyRouteIndex={activeEmptyRouteIndex}
-          activeEmptyTimeIndex={activeEmptyTimeIndex}
           draggingRouteIndex={draggingRouteIndex}
           dropTargetIndex={dropTargetIndex}
           isActive={screen === "route"}
           onCaptureFieldUndo={captureFieldUndo}
-          onClearRouteContent={clearRouteContent}
-          onClearRouteTime={clearRouteTime}
-          onCreateRouteContent={createRouteContent}
-          onCreateRouteTime={createRouteTime}
           onDropRouteCard={dropRouteCard}
           onEndRouteDrag={endRouteDrag}
           onEnterRouteDropTarget={enterRouteDropTarget}
           onInsertRouteRow={insertRouteRow}
           onLeaveRouteDropTarget={leaveRouteDropTarget}
+          onMoveRouteRow={moveSelectedRoute}
           onMoveOverRouteDropTarget={moveOverRouteDropTarget}
           onRememberEditStart={rememberEditStart}
+          onEditHeaderField={(field) => {
+            setEditingHeaderField(field);
+            setEditingRouteIndex(null);
+          }}
+          onEditRouteRow={(index) => {
+            setEditingRouteIndex(index);
+            setEditingHeaderField(null);
+          }}
           onStartRouteDrag={startRouteDrag}
+          onDeleteRouteRow={deleteRouteRow}
           onUpdateMetadataField={updateMetadataField}
           onUpdateRouteField={updateRouteField}
           onUpdateTripField={updateTripField}
-          routeMode={routeMode}
+          editingHeaderField={editingHeaderField}
+          editingRouteIndex={editingRouteIndex}
           trip={trip}
         />
-        <TemplateScreen
-          isActive={screen === "template"}
+        <TemplateEditScreen
+          isActive={screen === "templateEdit"}
           selectedTemplate={selectedTemplate}
-          onSelectTemplate={chooseTemplate}
-          toastMessage={toastMessage}
+          selectedTimelineSize={selectedTimelineSize}
+          templateDraft={currentTemplateDraft}
+          onSelectTemplate={setSelectedTemplate}
+          onSelectTimelineSize={setSelectedTimelineSize}
+          onToggleField={toggleTemplateDraftField}
+          onUpdateDraftField={updateTemplateDraftField}
         />
         <PreviewScreen
           isActive={screen === "preview"}
           selectedTemplate={selectedTemplate}
+          selectedTimelineSize={selectedTimelineSize}
+          templateDraft={currentTemplateDraft}
           toastMessage={toastMessage}
           trip={trip}
         />
@@ -905,7 +1148,7 @@ function AppHeader({ title, progress, showBack, backDisabled, onBack }) {
       <div className="header-copy">
         <h1 id="screenTitle">{title}</h1>
         <div className="progress-segments" id="progressSegments" aria-label="进度">
-          {[0, 1, 2].map((index) => (
+          {[0, 1, 2, 3].map((index) => (
             <span className={index < progress ? "is-active" : ""} key={index} />
           ))}
         </div>
@@ -914,10 +1157,34 @@ function AppHeader({ title, progress, showBack, backDisabled, onBack }) {
   );
 }
 
+function PurposeScreen({ isActive, selectedPurpose, onSelectPurpose }) {
+  return (
+    <section className={`screen ${isActive ? "is-active" : ""}`} id="screen-purpose">
+      <h2 className="purpose-title">你想制作什么？</h2>
+      <div className="purpose-card-list" aria-label="选择用途">
+        {purposeOptions.map((purpose) => (
+          <button
+            className={`purpose-card ${selectedPurpose === purpose.id ? "is-selected" : ""}`}
+            type="button"
+            key={purpose.id}
+            onClick={() => onSelectPurpose(purpose.id)}
+          >
+            <span>
+              <b>{purpose.title}</b>
+              <small>{purpose.subtitle}</small>
+            </span>
+            <i aria-hidden="true" />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function HomeScreen({ isActive, sourceText, onSourceTextChange, onGenerate }) {
   return (
     <section className={`screen ${isActive ? "is-active" : ""}`} id="screen-home">
-      <h2 className="home-title">你想去哪里?</h2>
+      <h2 className="home-title">导入行程</h2>
       <label className="home-input-block">
         <textarea
           id="sourceText"
@@ -937,45 +1204,50 @@ function HomeScreen({ isActive, sourceText, onSourceTextChange, onGenerate }) {
 }
 
 function RouteScreen({
-  activeEmptyRouteIndex,
-  activeEmptyTimeIndex,
   draggingRouteIndex,
   dropTargetIndex,
+  editingHeaderField,
+  editingRouteIndex,
   isActive,
   onCaptureFieldUndo,
-  onClearRouteContent,
-  onClearRouteTime,
-  onCreateRouteContent,
-  onCreateRouteTime,
   onDropRouteCard,
+  onEditHeaderField,
+  onEditRouteRow,
   onEndRouteDrag,
   onEnterRouteDropTarget,
   onInsertRouteRow,
   onLeaveRouteDropTarget,
+  onMoveRouteRow,
   onMoveOverRouteDropTarget,
   onRememberEditStart,
   onStartRouteDrag,
+  onDeleteRouteRow,
   onUpdateMetadataField,
   onUpdateRouteField,
   onUpdateTripField,
-  routeMode,
   trip
 }) {
-  const isEditing = routeMode === "edit";
+  const isRouteTitleEditing = editingHeaderField === "title";
+  const hasLocalEdit = editingRouteIndex !== null || editingHeaderField !== null;
 
   return (
-    <section className={`screen ${isActive ? "is-active" : ""} ${isEditing ? "is-editing" : ""}`} id="screen-route">
+    <section className={`screen ${isActive ? "is-active" : ""} ${hasLocalEdit ? "is-editing" : ""}`} id="screen-route">
       <section className="route-hero">
-        <h2 id="tripTitle">
-          {isEditing ? (
+        <h2 id="tripTitle" onDoubleClick={() => onEditHeaderField("title")}>
+          {isRouteTitleEditing ? (
             <input
               className="trip-title-input"
               value={trip.title}
               data-trip-field="title"
+              data-header-field="title"
+              data-route-edit-scope
               aria-label="路线名称"
               onBlur={onCaptureFieldUndo}
               onChange={(event) => onUpdateTripField("title", event.target.value)}
               onFocus={onRememberEditStart}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+              }}
             />
           ) : (
             trip.title
@@ -983,15 +1255,20 @@ function RouteScreen({
         </h2>
         <div className="metadata-chips" aria-label="路线标签">
           {trip.metadata.map((item, index) => (
-            <span key={index}>
-              {isEditing ? (
+            <span key={index} onDoubleClick={() => onEditHeaderField(`metadata-${index}`)}>
+              {editingHeaderField === `metadata-${index}` ? (
                 <input
                   value={item}
                   data-metadata-index={index}
+                  data-header-field={`metadata-${index}`}
+                  data-route-edit-scope
                   aria-label={`路线标签 ${index + 1}`}
                   onBlur={onCaptureFieldUndo}
                   onChange={(event) => onUpdateMetadataField(index, event.target.value)}
                   onFocus={onRememberEditStart}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") event.currentTarget.blur();
+                  }}
                 />
               ) : (
                 item
@@ -1001,29 +1278,27 @@ function RouteScreen({
         </div>
       </section>
       <div id="routeEditor">
-        <div className={`route-list ${isEditing ? "is-editing" : ""}`}>
+        <div className={`route-list ${editingRouteIndex !== null ? "is-editing" : ""}`}>
           {trip.steps.map((step, index) => (
             <RouteRow
-              activeEmptyRouteIndex={activeEmptyRouteIndex}
-              activeEmptyTimeIndex={activeEmptyTimeIndex}
               draggingRouteIndex={draggingRouteIndex}
               dropTargetIndex={dropTargetIndex}
               index={index}
-              isEditing={isEditing}
+              isEditing={editingRouteIndex === index}
               isLast={index === trip.steps.length - 1}
+              isSelected={editingRouteIndex === index}
               key={index}
               onCaptureFieldUndo={onCaptureFieldUndo}
-              onClearRouteContent={onClearRouteContent}
-              onClearRouteTime={onClearRouteTime}
-              onCreateRouteContent={onCreateRouteContent}
-              onCreateRouteTime={onCreateRouteTime}
+              onDeleteRouteRow={onDeleteRouteRow}
               onDropRouteCard={onDropRouteCard}
               onEndRouteDrag={onEndRouteDrag}
               onEnterRouteDropTarget={onEnterRouteDropTarget}
               onInsertRouteRow={onInsertRouteRow}
               onLeaveRouteDropTarget={onLeaveRouteDropTarget}
+              onMoveRouteRow={onMoveRouteRow}
               onMoveOverRouteDropTarget={onMoveOverRouteDropTarget}
               onRememberEditStart={onRememberEditStart}
+              onEditRouteRow={onEditRouteRow}
               onStartRouteDrag={onStartRouteDrag}
               onUpdateRouteField={onUpdateRouteField}
               step={step}
@@ -1036,23 +1311,21 @@ function RouteScreen({
 }
 
 function RouteRow({
-  activeEmptyRouteIndex,
-  activeEmptyTimeIndex,
   draggingRouteIndex,
   dropTargetIndex,
   index,
   isEditing,
   isLast,
+  isSelected,
   onCaptureFieldUndo,
-  onClearRouteContent,
-  onClearRouteTime,
-  onCreateRouteContent,
-  onCreateRouteTime,
+  onDeleteRouteRow,
   onDropRouteCard,
+  onEditRouteRow,
   onEndRouteDrag,
   onEnterRouteDropTarget,
   onInsertRouteRow,
   onLeaveRouteDropTarget,
+  onMoveRouteRow,
   onMoveOverRouteDropTarget,
   onRememberEditStart,
   onStartRouteDrag,
@@ -1065,7 +1338,7 @@ function RouteRow({
     "route-row",
     !hasTimeLabel ? "has-empty-time" : "",
     !hasRouteContent ? "has-empty-route" : "",
-    !hasTimeLabel && activeEmptyTimeIndex === index ? "is-filling-empty-time" : "",
+    isSelected ? "is-selected" : "",
     draggingRouteIndex === index ? "is-dragging-row" : "",
     dropTargetIndex === index ? "is-drop-target-row" : ""
   ]
@@ -1077,74 +1350,53 @@ function RouteRow({
       <article className={rowClasses}>
         <div className="time-block">
           <TimeBlock
-            activeEmptyTimeIndex={activeEmptyTimeIndex}
-            hasTimeLabel={hasTimeLabel}
             index={index}
             isEditing={isEditing}
+            isSelected={isSelected}
             onCaptureFieldUndo={onCaptureFieldUndo}
-            onCreateRouteTime={onCreateRouteTime}
             onRememberEditStart={onRememberEditStart}
             onUpdateRouteField={onUpdateRouteField}
             step={step}
           />
         </div>
         <RouteBlock
-          activeEmptyRouteIndex={activeEmptyRouteIndex}
           draggingRouteIndex={draggingRouteIndex}
           dropTargetIndex={dropTargetIndex}
           hasRouteContent={hasRouteContent}
           index={index}
           isEditing={isEditing}
+          isLast={isLast}
+          isSelected={isSelected}
           onCaptureFieldUndo={onCaptureFieldUndo}
-          onClearRouteContent={onClearRouteContent}
-          onCreateRouteContent={onCreateRouteContent}
+          onDeleteRouteRow={onDeleteRouteRow}
           onDropRouteCard={onDropRouteCard}
+          onEditRouteRow={onEditRouteRow}
           onEndRouteDrag={onEndRouteDrag}
           onEnterRouteDropTarget={onEnterRouteDropTarget}
+          onInsertRouteRow={onInsertRouteRow}
           onLeaveRouteDropTarget={onLeaveRouteDropTarget}
+          onMoveRouteRow={onMoveRouteRow}
           onMoveOverRouteDropTarget={onMoveOverRouteDropTarget}
           onRememberEditStart={onRememberEditStart}
           onStartRouteDrag={onStartRouteDrag}
           onUpdateRouteField={onUpdateRouteField}
           step={step}
         />
-        {isEditing && hasTimeLabel ? (
-          <button
-            className="delete-row-button"
-            type="button"
-            data-clear-time={index}
-            aria-label="清空时间"
-            onClick={() => onClearRouteTime(index)}
-          />
-        ) : null}
       </article>
-      {isEditing && !isLast ? (
-        <button
-          className="insert-row-button"
-          type="button"
-          data-insert-after={index}
-          aria-label="插入路线"
-          onClick={() => onInsertRouteRow(index)}
-        >
-          +
-        </button>
-      ) : null}
     </>
   );
 }
 
 function TimeBlock({
-  activeEmptyTimeIndex,
-  hasTimeLabel,
   index,
   isEditing,
+  isSelected,
   onCaptureFieldUndo,
-  onCreateRouteTime,
   onRememberEditStart,
   onUpdateRouteField,
   step
 }) {
-  if (isEditing && (hasTimeLabel || activeEmptyTimeIndex === index)) {
+  if (isEditing && isSelected) {
     return (
       <input
         value={step.time}
@@ -1154,15 +1406,10 @@ function TimeBlock({
         onBlur={onCaptureFieldUndo}
         onChange={(event) => onUpdateRouteField(index, "time", event.target.value)}
         onFocus={onRememberEditStart}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+        }}
       />
-    );
-  }
-
-  if (isEditing && !hasTimeLabel) {
-    return (
-      <button className="create-time-button" type="button" data-create-time={index} aria-label="新增时间" onClick={() => onCreateRouteTime(index)}>
-        +
-      </button>
     );
   }
 
@@ -1170,19 +1417,22 @@ function TimeBlock({
 }
 
 function RouteBlock({
-  activeEmptyRouteIndex,
   draggingRouteIndex,
   dropTargetIndex,
   hasRouteContent,
   index,
   isEditing,
+  isLast,
+  isSelected,
   onCaptureFieldUndo,
-  onClearRouteContent,
-  onCreateRouteContent,
+  onDeleteRouteRow,
   onDropRouteCard,
+  onEditRouteRow,
   onEndRouteDrag,
   onEnterRouteDropTarget,
+  onInsertRouteRow,
   onLeaveRouteDropTarget,
+  onMoveRouteRow,
   onMoveOverRouteDropTarget,
   onRememberEditStart,
   onStartRouteDrag,
@@ -1191,7 +1441,7 @@ function RouteBlock({
 }) {
   const classes = [
     "route-block",
-    !hasRouteContent && activeEmptyRouteIndex === index ? "is-filling-empty-route" : "",
+    isSelected ? "is-selected" : "",
     draggingRouteIndex === index ? "is-dragging" : "",
     dropTargetIndex === index ? "is-drop-target" : ""
   ]
@@ -1201,23 +1451,25 @@ function RouteBlock({
   return (
     <div
       className={classes}
-      draggable={isEditing && hasRouteContent}
-      data-drag-index={isEditing && hasRouteContent ? index : undefined}
-      onDragEnd={isEditing && hasRouteContent ? onEndRouteDrag : undefined}
-      onDragEnter={isEditing && hasRouteContent ? () => onEnterRouteDropTarget(index) : undefined}
-      onDragLeave={isEditing && hasRouteContent ? (event) => onLeaveRouteDropTarget(event, index) : undefined}
-      onDragOver={isEditing && hasRouteContent ? (event) => onMoveOverRouteDropTarget(event, index) : undefined}
-      onDragStart={isEditing && hasRouteContent ? (event) => onStartRouteDrag(event, index) : undefined}
-      onDrop={isEditing && hasRouteContent ? (event) => onDropRouteCard(event, index) : undefined}
+      data-route-edit-scope={isEditing ? true : undefined}
+      draggable={isEditing && isSelected && hasRouteContent}
+      onDoubleClick={() => onEditRouteRow(index)}
+      data-drag-index={isEditing && isSelected && hasRouteContent ? index : undefined}
+      onDragEnd={isEditing && isSelected && hasRouteContent ? onEndRouteDrag : undefined}
+      onDragEnter={isEditing && isSelected && hasRouteContent ? () => onEnterRouteDropTarget(index) : undefined}
+      onDragLeave={isEditing && isSelected && hasRouteContent ? (event) => onLeaveRouteDropTarget(event, index) : undefined}
+      onDragOver={isEditing && isSelected && hasRouteContent ? (event) => onMoveOverRouteDropTarget(event, index) : undefined}
+      onDragStart={isEditing && isSelected && hasRouteContent ? (event) => onStartRouteDrag(event, index) : undefined}
+      onDrop={isEditing && isSelected && hasRouteContent ? (event) => onDropRouteCard(event, index) : undefined}
     >
-      {isEditing ? (
+      {isEditing && isSelected ? (
         <EditableRouteContent
-          activeEmptyRouteIndex={activeEmptyRouteIndex}
-          hasRouteContent={hasRouteContent}
           index={index}
+          isLast={isLast}
           onCaptureFieldUndo={onCaptureFieldUndo}
-          onClearRouteContent={onClearRouteContent}
-          onCreateRouteContent={onCreateRouteContent}
+          onDeleteRouteRow={onDeleteRouteRow}
+          onInsertRouteRow={onInsertRouteRow}
+          onMoveRouteRow={onMoveRouteRow}
           onRememberEditStart={onRememberEditStart}
           onUpdateRouteField={onUpdateRouteField}
           step={step}
@@ -1241,35 +1493,18 @@ function RouteContent({ step }) {
 }
 
 function EditableRouteContent({
-  activeEmptyRouteIndex,
-  hasRouteContent,
   index,
+  isLast,
   onCaptureFieldUndo,
-  onClearRouteContent,
-  onCreateRouteContent,
+  onDeleteRouteRow,
+  onInsertRouteRow,
+  onMoveRouteRow,
   onRememberEditStart,
   onUpdateRouteField,
   step
 }) {
-  if (!hasRouteContent && activeEmptyRouteIndex !== index) {
-    return (
-      <button className="create-route-button" type="button" data-create-route={index} aria-label="新增路线内容" onClick={() => onCreateRouteContent(index)}>
-        +
-      </button>
-    );
-  }
-
   return (
     <>
-      {hasRouteContent ? (
-        <button
-          className="delete-route-button"
-          type="button"
-          data-delete-row={index}
-          aria-label="清空路线内容"
-          onClick={() => onClearRouteContent(index)}
-        />
-      ) : null}
       <input
         className="route-title-input"
         value={step.title}
@@ -1280,6 +1515,9 @@ function EditableRouteContent({
         onBlur={onCaptureFieldUndo}
         onChange={(event) => onUpdateRouteField(index, "title", event.target.value)}
         onFocus={onRememberEditStart}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+        }}
       />
       <textarea
         rows="2"
@@ -1292,7 +1530,20 @@ function EditableRouteContent({
         onChange={(event) => onUpdateRouteField(index, "note", event.target.value)}
         onFocus={onRememberEditStart}
       />
-      {hasRouteContent ? <span className="drag-handle-button" aria-hidden="true">≡</span> : null}
+      <div className="route-item-controls" aria-label="路线操作" onClick={(event) => event.stopPropagation()}>
+        <button type="button" onClick={() => onInsertRouteRow(index)}>
+          插入
+        </button>
+        <button type="button" onClick={() => onDeleteRouteRow(index)}>
+          删除
+        </button>
+        <button type="button" disabled={index === 0} onClick={() => onMoveRouteRow(index, -1)}>
+          上移
+        </button>
+        <button type="button" disabled={isLast} onClick={() => onMoveRouteRow(index, 1)}>
+          下移
+        </button>
+      </div>
     </>
   );
 }
@@ -1325,73 +1576,308 @@ function TemplateScreen({ isActive, selectedTemplate, onSelectTemplate, toastMes
   );
 }
 
-function PreviewScreen({ isActive, selectedTemplate, toastMessage, trip }) {
-  const template = templateOptions.find((option) => option.id === selectedTemplate) || templateOptions[0];
-  const tripSignature = makeTripSignature(trip);
-  const isCardTemplate = selectedTemplate === "card";
-  const [cardText, setCardText] = useState(() => ({
-    title: trip.title || "",
-    route: buildCardRouteText(trip.steps),
-    meta: buildCardMetadataText(trip)
-  }));
+function TemplateEditScreen({
+  isActive,
+  selectedTemplate,
+  selectedTimelineSize,
+  templateDraft,
+  onSelectTemplate,
+  onSelectTimelineSize,
+  onToggleField,
+  onUpdateDraftField
+}) {
+  const template = templateOptions.find((option) => option.id === selectedTemplate) || templateOptions[1];
+  const isTimelineTemplate = selectedTemplate === "timeline";
 
-  useEffect(() => {
-    if (!isActive) return;
-    setCardText({
-      title: trip.title || "",
-      route: buildCardRouteText(trip.steps),
-      meta: buildCardMetadataText(trip)
-    });
-  }, [isActive, tripSignature]);
+  return (
+    <section className={`screen ${isActive ? "is-active" : ""}`} id="screen-template-edit">
+      <div className="template-mode-switcher" aria-label="切换模板">
+        {templateOptions.map((option) => (
+          <button
+            className={option.id === selectedTemplate ? "is-selected" : ""}
+            type="button"
+            key={option.id}
+            onClick={() => onSelectTemplate(option.id)}
+          >
+            {getTemplateShortTitle(option.id)}
+          </button>
+        ))}
+      </div>
 
-  function updateCardField(field, value) {
-    setCardText((current) => ({
-      ...current,
-      [field]: value
-    }));
+      {isTimelineTemplate ? (
+        <TimelineSizeSwitcher
+          selectedTimelineSize={selectedTimelineSize}
+          onSelectTimelineSize={onSelectTimelineSize}
+        />
+      ) : null}
+
+      <div className="template-edit-preview" aria-label={`${template.title}编辑预览`}>
+        <EditableTemplatePreview
+          selectedTemplate={selectedTemplate}
+          selectedTimelineSize={selectedTimelineSize}
+          templateDraft={templateDraft}
+          onUpdateDraftField={onUpdateDraftField}
+        />
+      </div>
+
+      <section className="template-field-panel" aria-label="模板内容开关">
+        <TemplateToggle
+          checked={templateDraft.visible?.title}
+          label="行程标题"
+          onChange={() => onToggleField("title")}
+        />
+        <TemplateToggle
+          checked={templateDraft.visible?.route}
+          label="路线详情"
+          onChange={() => onToggleField("route")}
+        />
+        <TemplateToggle
+          checked={templateDraft.visible?.meta}
+          label="路线提示"
+          onChange={() => onToggleField("meta")}
+        />
+      </section>
+    </section>
+  );
+}
+
+function TimelineSizeSwitcher({ selectedTimelineSize, onSelectTimelineSize }) {
+  const size = getTimelineSizeOption(selectedTimelineSize);
+
+  return (
+    <div className="timeline-size-switcher" aria-label="切换时间轴尺寸">
+      <button
+        type="button"
+        aria-label="切换到上一个时间轴尺寸"
+        onClick={() => onSelectTimelineSize(getNextTimelineSizeId(selectedTimelineSize, -1))}
+      >
+        &lt;
+      </button>
+      <span>
+        <b>{size.label}</b>
+        <small>{size.widthMm} x {size.heightMm} mm</small>
+      </span>
+      <button
+        type="button"
+        aria-label="切换到下一个时间轴尺寸"
+        onClick={() => onSelectTimelineSize(getNextTimelineSizeId(selectedTimelineSize, 1))}
+      >
+        &gt;
+      </button>
+    </div>
+  );
+}
+
+function TemplateToggle({ checked, label, onChange }) {
+  return (
+    <label className="template-toggle-row">
+      <span>{label}</span>
+      <input type="checkbox" checked={Boolean(checked)} onChange={onChange} />
+      <i aria-hidden="true" />
+    </label>
+  );
+}
+
+function EditableTemplatePreview({ selectedTemplate, selectedTimelineSize, templateDraft, onUpdateDraftField }) {
+  if (selectedTemplate === "timeline") {
+    return (
+      <TimelineTemplatePreview
+        isEditable
+        selectedTimelineSize={selectedTimelineSize}
+        templateDraft={templateDraft}
+        onUpdateDraftField={onUpdateDraftField}
+      />
+    );
   }
+
+  if (selectedTemplate !== "card") {
+    return (
+      <section className={`preview-card template-preview-${selectedTemplate}`}>
+        {templateDraft.visible?.title ? (
+          <input
+            className="template-edit-title"
+            value={templateDraft.title}
+            aria-label="模板标题"
+            onChange={(event) => onUpdateDraftField("title", event.target.value)}
+          />
+        ) : null}
+        <div className="preview-route">
+          {templateDraft.visible?.route ? (
+            <textarea
+              className="template-edit-route"
+              value={templateDraft.route}
+              rows={Math.max(6, templateDraft.route.split("\n").length)}
+              aria-label="模板路线详情"
+              onChange={(event) => onUpdateDraftField("route", event.target.value)}
+            />
+          ) : null}
+          {templateDraft.visible?.meta ? (
+            <textarea
+              className="template-edit-meta"
+              value={templateDraft.meta}
+              rows={Math.max(2, templateDraft.meta.split("\n").length)}
+              aria-label="模板路线提示"
+              onChange={(event) => onUpdateDraftField("meta", event.target.value)}
+            />
+          ) : null}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="small-card-stage template-edit-card-stage" aria-label="小卡编辑">
+      <article className="sticky-route-card">
+        {templateDraft.visible?.title ? (
+          <input
+            className="small-card-field small-card-title"
+            value={templateDraft.title}
+            aria-label="小卡路线标题"
+            onChange={(event) => onUpdateDraftField("title", event.target.value)}
+          />
+        ) : null}
+        {templateDraft.visible?.title && templateDraft.visible?.route ? <div className="small-card-divider" aria-hidden="true" /> : null}
+        {templateDraft.visible?.route ? (
+          <textarea
+            className="small-card-field small-card-route"
+            value={templateDraft.route}
+            rows={Math.max(3, templateDraft.route.split("\n").length)}
+            aria-label="小卡路线内容"
+            onChange={(event) => onUpdateDraftField("route", event.target.value)}
+          />
+        ) : null}
+        {(templateDraft.visible?.title || templateDraft.visible?.route) && templateDraft.visible?.meta ? (
+          <div className="small-card-divider" aria-hidden="true" />
+        ) : null}
+        {templateDraft.visible?.meta ? (
+          <textarea
+            className="small-card-field small-card-meta"
+            value={templateDraft.meta}
+            rows={Math.max(1, templateDraft.meta.split("\n").length)}
+            aria-label="小卡路线信息"
+            onChange={(event) => onUpdateDraftField("meta", event.target.value)}
+          />
+        ) : null}
+      </article>
+    </section>
+  );
+}
+
+function TimelineTemplatePreview({ isEditable = false, selectedTimelineSize, templateDraft, onUpdateDraftField }) {
+  const visibleText = getVisibleTemplateText(templateDraft);
+  const size = getTimelineSizeOption(selectedTimelineSize);
+  const timelineItems = getTimelineItems(visibleText.route);
+  const editableTimelineLines = String(templateDraft.route || "")
+    .split("\n")
+    .map((line) => ({ raw: line, parsed: parseTimelineLine(line) || { hasTime: false, time: "", text: "" } }));
+  if (!editableTimelineLines.length) editableTimelineLines.push({ raw: "", parsed: { hasTime: false, time: "", text: "" } });
+  const showTitle = Boolean(templateDraft.visible?.title && (isEditable || visibleText.title));
+  const showRoute = Boolean(templateDraft.visible?.route && (isEditable || visibleText.route));
+  const showMeta = Boolean(templateDraft.visible?.meta && (isEditable || visibleText.meta));
+  const style = {
+    "--timeline-ratio": `${size.widthMm} / ${size.heightMm}`
+  };
+
+  function updateTimelineRouteLine(lineIndex, value) {
+    const lines = String(templateDraft.route || "").split("\n");
+    lines[lineIndex] = value;
+    onUpdateDraftField("route", lines.join("\n"));
+  }
+
+  return (
+    <section className={`timeline-sticker-stage timeline-size-${size.id}`} aria-label={`${size.label}时间轴`}>
+      <article className="timeline-sticker" style={style}>
+        {showTitle ? (
+          isEditable ? (
+            <input
+              className="timeline-title-field"
+              value={templateDraft.title}
+              aria-label="时间轴标题"
+              onChange={(event) => onUpdateDraftField("title", event.target.value)}
+            />
+          ) : (
+            <h2>{visibleText.title}</h2>
+          )
+        ) : null}
+        {showTitle && showRoute ? <div className="timeline-divider" aria-hidden="true" /> : null}
+        {showRoute ? (
+          <div className="timeline-body">
+            {isEditable ? (
+              <ol className="timeline-list timeline-list-editable">
+                {editableTimelineLines.map((item, index) => (
+                  <li className={item.parsed.hasTime ? "has-time" : "is-continuation"} key={index}>
+                    <i aria-hidden="true" />
+                    <input
+                      className="timeline-line-field"
+                      value={item.raw}
+                      aria-label={`时间轴路线第 ${index + 1} 行`}
+                      onChange={(event) => updateTimelineRouteLine(index, event.target.value)}
+                    />
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <ol className="timeline-list">
+                {timelineItems.map((item, index) => (
+                  <li className={item.hasTime ? "has-time" : "is-continuation"} key={`${item.time}-${item.text}-${index}`}>
+                    <i aria-hidden="true" />
+                    <span>{item.hasTime ? `${item.time} ${item.text}` : item.text}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        ) : null}
+        {showRoute && showMeta ? <div className="timeline-divider" aria-hidden="true" /> : null}
+        {showMeta ? (
+          isEditable ? (
+            <textarea
+              className="timeline-meta-field"
+              value={templateDraft.meta}
+              rows={Math.max(1, templateDraft.meta.split("\n").length)}
+              aria-label="时间轴路线提示"
+              onChange={(event) => onUpdateDraftField("meta", event.target.value)}
+            />
+          ) : (
+            <p className="timeline-meta">{visibleText.meta}</p>
+          )
+        ) : null}
+      </article>
+    </section>
+  );
+}
+
+function PreviewScreen({ isActive, selectedTemplate, selectedTimelineSize, templateDraft, toastMessage, trip }) {
+  const template = templateOptions.find((option) => option.id === selectedTemplate) || templateOptions[0];
+  const isCardTemplate = selectedTemplate === "card";
+  const isTimelineTemplate = selectedTemplate === "timeline";
+  const visibleText = getVisibleTemplateText(templateDraft);
 
   return (
     <section className={`screen ${isActive ? "is-active" : ""}`} id="screen-preview">
       <div id="templatePreview">
-        {isCardTemplate ? (
+        {isTimelineTemplate ? (
+          <TimelineTemplatePreview
+            selectedTimelineSize={selectedTimelineSize}
+            templateDraft={templateDraft}
+          />
+        ) : isCardTemplate ? (
           <section className="small-card-stage" aria-label={template.title}>
             <article className="sticky-route-card" id="smallCardExport">
-              <input
-                className="small-card-field small-card-title"
-                value={cardText.title}
-                aria-label="小卡路线标题"
-                onChange={(event) => updateCardField("title", event.target.value)}
-              />
-              <div className="small-card-divider" aria-hidden="true" />
-              <textarea
-                className="small-card-field small-card-route"
-                value={cardText.route}
-                rows={Math.max(3, cardText.route.split("\n").length)}
-                aria-label="小卡路线内容"
-                onChange={(event) => updateCardField("route", event.target.value)}
-              />
-              <div className="small-card-divider" aria-hidden="true" />
-              <textarea
-                className="small-card-field small-card-meta"
-                value={cardText.meta}
-                rows={Math.max(1, cardText.meta.split("\n").length)}
-                aria-label="小卡路线信息"
-                onChange={(event) => updateCardField("meta", event.target.value)}
-              />
+              {visibleText.title ? <p className="small-card-text small-card-title">{visibleText.title}</p> : null}
+              {visibleText.title && visibleText.route ? <div className="small-card-divider" aria-hidden="true" /> : null}
+              {visibleText.route ? <p className="small-card-text small-card-route">{visibleText.route}</p> : null}
+              {(visibleText.title || visibleText.route) && visibleText.meta ? <div className="small-card-divider" aria-hidden="true" /> : null}
+              {visibleText.meta ? <p className="small-card-text small-card-meta">{visibleText.meta}</p> : null}
             </article>
           </section>
         ) : (
           <section className="preview-card">
             <p>{template.title}</p>
-            <h2>{trip.title}</h2>
+            {visibleText.title ? <h2>{visibleText.title}</h2> : null}
             <div className="preview-route">
-              {trip.steps.map((step, index) => (
-                <div key={index}>
-                  <span>{step.time || "节点"}</span>
-                  <strong>{step.title}</strong>
-                </div>
-              ))}
+              {visibleText.route ? <p>{visibleText.route}</p> : null}
+              {visibleText.meta ? <small>{visibleText.meta}</small> : null}
             </div>
           </section>
         )}
@@ -1409,10 +1895,10 @@ function BottomBar({ canUndo, routeMode, screen, onDownloadA4, onDownloadCard, o
   return (
     <footer className="app-bottom-bar">
       <div className={`button-row two-up ${actionKey === "route-view" ? "is-active" : ""}`} data-actions-for="route-view">
-        <button className="secondary-button" id="editRouteButton" type="button" onClick={onStartEdit}>
+        <button className="secondary-button" id="editRouteButton" type="button" disabled onClick={onStartEdit}>
           修改
         </button>
-        <button className="primary-button" data-go="template" type="button" onClick={() => onGoToScreen("template")}>
+        <button className="primary-button" data-go="template-edit" type="button" onClick={() => onGoToScreen("templateEdit")}>
           生成路线图
         </button>
       </div>
@@ -1421,6 +1907,11 @@ function BottomBar({ canUndo, routeMode, screen, onDownloadA4, onDownloadCard, o
           撤回
         </button>
         <button className="primary-button" id="finishEditButton" type="button" onClick={onFinishEdit}>
+          完成
+        </button>
+      </div>
+      <div className={`button-row one-up ${actionKey === "templateEdit" ? "is-active" : ""}`} data-actions-for="template-edit">
+        <button className="primary-button" id="finishTemplateEditButton" type="button" onClick={() => onGoToScreen("preview")}>
           完成
         </button>
       </div>
