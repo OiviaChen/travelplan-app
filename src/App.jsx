@@ -56,7 +56,8 @@ const templateOptions = [
   {
     id: "detailed",
     title: "详细版路线",
-    subtitle: "适合A4打印"
+    subtitle: "适合A4打印",
+    disabled: true
   },
   {
     id: "card",
@@ -90,7 +91,8 @@ const purposeOptions = [
     id: "detailed",
     title: "详细旅行行程",
     subtitle: "出行前打印详细路线",
-    templateId: "detailed"
+    templateId: "detailed",
+    disabled: true
   },
   {
     id: "card",
@@ -420,6 +422,18 @@ function createTemplateDrafts(trip) {
   }, {});
 }
 
+function syncTemplateDraftsWithTrip(currentDrafts, trip) {
+  return templateOptions.reduce((drafts, template) => {
+    const previousDraft = currentDrafts[template.id];
+    const nextDraft = createTemplateDraft(trip, template.id);
+    drafts[template.id] = {
+      ...nextDraft,
+      visible: previousDraft?.visible || nextDraft.visible
+    };
+    return drafts;
+  }, {});
+}
+
 function getVisibleTemplateText(templateDraft) {
   const draft = templateDraft || createTemplateDraft(defaultTrip);
   return {
@@ -427,6 +441,28 @@ function getVisibleTemplateText(templateDraft) {
     route: draft.visible?.route ? draft.route : "",
     meta: draft.visible?.meta ? draft.meta : ""
   };
+}
+
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+    return window.matchMedia(query).matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return undefined;
+    const mediaQuery = window.matchMedia(query);
+    setMatches(mediaQuery.matches);
+
+    function handleChange(event) {
+      setMatches(event.matches);
+    }
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [query]);
+
+  return matches;
 }
 
 function getTemplateShortTitle(templateId) {
@@ -699,12 +735,18 @@ function App() {
   const [sourceText, setSourceText] = useState("");
   const [toastMessage, setToastMessage] = useState("");
   const editSnapshotRef = useRef(null);
+  const isDesktopRouteLayout = useMediaQuery("(min-width: 768px)");
   const meta = screenMeta[screen];
   const currentTemplateDraft = templateDrafts[selectedTemplate] || createTemplateDraft(trip, selectedTemplate);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [screen]);
+
+  useEffect(() => {
+    if (screen !== "route") return;
+    setTemplateDrafts((current) => syncTemplateDraftsWithTrip(current, trip));
+  }, [screen, trip]);
 
   useEffect(() => {
     if (screen !== "route" || editingRouteIndex === null) return;
@@ -774,14 +816,38 @@ function App() {
 
   function choosePurpose(purposeId) {
     const purpose = purposeOptions.find((option) => option.id === purposeId) || purposeOptions[1];
+    if (purpose.disabled) {
+      setToastMessage("暂未开放");
+      return;
+    }
+
+    setToastMessage("");
     setSelectedPurpose(purpose.id);
     setSelectedTemplate(purpose.templateId);
     goToScreen("home");
   }
 
   function chooseTemplate(templateId) {
+    const nextTemplate = templateOptions.find((template) => template.id === templateId);
+    if (nextTemplate?.disabled) {
+      setToastMessage("暂未开放");
+      return;
+    }
+
+    setToastMessage("");
     setSelectedTemplate(templateId);
     goToScreen("templateEdit");
+  }
+
+  function chooseTemplateMode(templateId) {
+    const nextTemplate = templateOptions.find((template) => template.id === templateId);
+    if (nextTemplate?.disabled) {
+      setToastMessage("暂未开放");
+      return;
+    }
+
+    setToastMessage("");
+    setSelectedTemplate(templateId);
   }
 
   function updateTemplateDraftField(field, value) {
@@ -1002,11 +1068,8 @@ function App() {
     await saveCanvasImage(canvas, filename, "保存这张路线小卡");
   }
 
-  async function downloadA4Print() {
-    const { title, route, meta } = getVisibleTemplateText(currentTemplateDraft);
-    const canvas = createA4Canvas({ title, route, meta });
-    const filename = `${getSafeDownloadName(title || currentTemplateDraft.title || trip.title)}-A4打印版.png`;
-    await saveCanvasImage(canvas, filename, "保存这张 A4 打印版路线小卡");
+  function downloadA4Print() {
+    setToastMessage("暂未开放");
   }
 
   async function saveCanvasImage(canvas, filename, shareText) {
@@ -1054,6 +1117,7 @@ function App() {
           isActive={screen === "purpose"}
           selectedPurpose={selectedPurpose}
           onSelectPurpose={choosePurpose}
+          toastMessage={toastMessage}
         />
         <HomeScreen
           isActive={screen === "home"}
@@ -1064,6 +1128,7 @@ function App() {
         <RouteScreen
           draggingRouteIndex={draggingRouteIndex}
           dropTargetIndex={dropTargetIndex}
+          isDesktopRouteLayout={isDesktopRouteLayout}
           isActive={screen === "route"}
           onCaptureFieldUndo={captureFieldUndo}
           onDropRouteCard={dropRouteCard}
@@ -1089,6 +1154,10 @@ function App() {
           onUpdateTripField={updateTripField}
           editingHeaderField={editingHeaderField}
           editingRouteIndex={editingRouteIndex}
+          onCloseRouteDetail={() => {
+            setEditingRouteIndex(null);
+            setEditingHeaderField(null);
+          }}
           trip={trip}
         />
         <TemplateEditScreen
@@ -1096,10 +1165,11 @@ function App() {
           selectedTemplate={selectedTemplate}
           selectedTimelineSize={selectedTimelineSize}
           templateDraft={currentTemplateDraft}
-          onSelectTemplate={setSelectedTemplate}
+          onSelectTemplate={chooseTemplateMode}
           onSelectTimelineSize={setSelectedTimelineSize}
           onToggleField={toggleTemplateDraftField}
           onUpdateDraftField={updateTemplateDraftField}
+          toastMessage={toastMessage}
         />
         <PreviewScreen
           isActive={screen === "preview"}
@@ -1157,15 +1227,16 @@ function AppHeader({ title, progress, showBack, backDisabled, onBack }) {
   );
 }
 
-function PurposeScreen({ isActive, selectedPurpose, onSelectPurpose }) {
+function PurposeScreen({ isActive, selectedPurpose, onSelectPurpose, toastMessage }) {
   return (
     <section className={`screen ${isActive ? "is-active" : ""}`} id="screen-purpose">
       <h2 className="purpose-title">你想制作什么？</h2>
       <div className="purpose-card-list" aria-label="选择用途">
         {purposeOptions.map((purpose) => (
           <button
-            className={`purpose-card ${selectedPurpose === purpose.id ? "is-selected" : ""}`}
+            className={`purpose-card ${selectedPurpose === purpose.id ? "is-selected" : ""} ${purpose.disabled ? "is-disabled" : ""}`}
             type="button"
+            aria-disabled={String(Boolean(purpose.disabled))}
             key={purpose.id}
             onClick={() => onSelectPurpose(purpose.id)}
           >
@@ -1177,6 +1248,9 @@ function PurposeScreen({ isActive, selectedPurpose, onSelectPurpose }) {
           </button>
         ))}
       </div>
+      <p className="status-message purpose-status" aria-live="polite">
+        {toastMessage}
+      </p>
     </section>
   );
 }
@@ -1208,8 +1282,10 @@ function RouteScreen({
   dropTargetIndex,
   editingHeaderField,
   editingRouteIndex,
+  isDesktopRouteLayout,
   isActive,
   onCaptureFieldUndo,
+  onCloseRouteDetail,
   onDropRouteCard,
   onEditHeaderField,
   onEditRouteRow,
@@ -1229,82 +1305,104 @@ function RouteScreen({
 }) {
   const isRouteTitleEditing = editingHeaderField === "title";
   const hasLocalEdit = editingRouteIndex !== null || editingHeaderField !== null;
+  const editingStep = editingRouteIndex !== null ? trip.steps[editingRouteIndex] : null;
 
   return (
     <section className={`screen ${isActive ? "is-active" : ""} ${hasLocalEdit ? "is-editing" : ""}`} id="screen-route">
-      <section className="route-hero">
-        <h2 id="tripTitle" onDoubleClick={() => onEditHeaderField("title")}>
-          {isRouteTitleEditing ? (
-            <input
-              className="trip-title-input"
-              value={trip.title}
-              data-trip-field="title"
-              data-header-field="title"
-              data-route-edit-scope
-              aria-label="路线名称"
-              onBlur={onCaptureFieldUndo}
-              onChange={(event) => onUpdateTripField("title", event.target.value)}
-              onFocus={onRememberEditStart}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") event.currentTarget.blur();
-              }}
-            />
-          ) : (
-            trip.title
-          )}
-        </h2>
-        <div className="metadata-chips" aria-label="路线标签">
-          {trip.metadata.map((item, index) => (
-            <span key={index} onDoubleClick={() => onEditHeaderField(`metadata-${index}`)}>
-              {editingHeaderField === `metadata-${index}` ? (
+      <div className="route-workbench">
+        <section className="route-main-panel">
+          <section className="route-hero">
+            <h2 id="tripTitle" onDoubleClick={() => onEditHeaderField("title")}>
+              {isRouteTitleEditing ? (
                 <input
-                  value={item}
-                  data-metadata-index={index}
-                  data-header-field={`metadata-${index}`}
+                  className="trip-title-input"
+                  value={trip.title}
+                  data-trip-field="title"
+                  data-header-field="title"
                   data-route-edit-scope
-                  aria-label={`路线标签 ${index + 1}`}
+                  aria-label="路线名称"
                   onBlur={onCaptureFieldUndo}
-                  onChange={(event) => onUpdateMetadataField(index, event.target.value)}
+                  onChange={(event) => onUpdateTripField("title", event.target.value)}
                   onFocus={onRememberEditStart}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") event.currentTarget.blur();
                   }}
                 />
               ) : (
-                item
+                trip.title
               )}
-            </span>
-          ))}
-        </div>
-      </section>
-      <div id="routeEditor">
-        <div className={`route-list ${editingRouteIndex !== null ? "is-editing" : ""}`}>
-          {trip.steps.map((step, index) => (
-            <RouteRow
-              draggingRouteIndex={draggingRouteIndex}
-              dropTargetIndex={dropTargetIndex}
-              index={index}
-              isEditing={editingRouteIndex === index}
-              isLast={index === trip.steps.length - 1}
-              isSelected={editingRouteIndex === index}
-              key={index}
-              onCaptureFieldUndo={onCaptureFieldUndo}
-              onDeleteRouteRow={onDeleteRouteRow}
-              onDropRouteCard={onDropRouteCard}
-              onEndRouteDrag={onEndRouteDrag}
-              onEnterRouteDropTarget={onEnterRouteDropTarget}
-              onInsertRouteRow={onInsertRouteRow}
-              onLeaveRouteDropTarget={onLeaveRouteDropTarget}
-              onMoveRouteRow={onMoveRouteRow}
-              onMoveOverRouteDropTarget={onMoveOverRouteDropTarget}
-              onRememberEditStart={onRememberEditStart}
-              onEditRouteRow={onEditRouteRow}
-              onStartRouteDrag={onStartRouteDrag}
-              onUpdateRouteField={onUpdateRouteField}
-              step={step}
-            />
-          ))}
-        </div>
+            </h2>
+            <div className="metadata-chips" aria-label="路线标签">
+              {trip.metadata.map((item, index) => (
+                <span key={index} onDoubleClick={() => onEditHeaderField(`metadata-${index}`)}>
+                  {editingHeaderField === `metadata-${index}` ? (
+                    <input
+                      value={item}
+                      data-metadata-index={index}
+                      data-header-field={`metadata-${index}`}
+                      data-route-edit-scope
+                      aria-label={`路线标签 ${index + 1}`}
+                      onBlur={onCaptureFieldUndo}
+                      onChange={(event) => onUpdateMetadataField(index, event.target.value)}
+                      onFocus={onRememberEditStart}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") event.currentTarget.blur();
+                      }}
+                    />
+                  ) : (
+                    item
+                  )}
+                </span>
+              ))}
+            </div>
+          </section>
+          <div id="routeEditor" className={`route-workspace ${editingRouteIndex !== null ? "has-detail" : ""}`}>
+            <div className={`route-list ${editingRouteIndex !== null ? "is-editing" : ""}`}>
+              {trip.steps.map((step, index) => (
+                <RouteRow
+                  draggingRouteIndex={draggingRouteIndex}
+                  dropTargetIndex={dropTargetIndex}
+                  index={index}
+                  isDesktopRouteLayout={isDesktopRouteLayout}
+                  isEditing={editingRouteIndex === index}
+                  isLast={index === trip.steps.length - 1}
+                  isSelected={editingRouteIndex === index}
+                  key={index}
+                  onCaptureFieldUndo={onCaptureFieldUndo}
+                  onDeleteRouteRow={onDeleteRouteRow}
+                  onDropRouteCard={onDropRouteCard}
+                  onEndRouteDrag={onEndRouteDrag}
+                  onEnterRouteDropTarget={onEnterRouteDropTarget}
+                  onInsertRouteRow={onInsertRouteRow}
+                  onLeaveRouteDropTarget={onLeaveRouteDropTarget}
+                  onMoveRouteRow={onMoveRouteRow}
+                  onMoveOverRouteDropTarget={onMoveOverRouteDropTarget}
+                  onRememberEditStart={onRememberEditStart}
+                  onEditRouteRow={onEditRouteRow}
+                  onStartRouteDrag={onStartRouteDrag}
+                  onUpdateRouteField={onUpdateRouteField}
+                  step={step}
+                />
+              ))}
+            </div>
+            {editingStep ? (
+              <RouteDetailPanel
+                index={editingRouteIndex}
+                isLast={editingRouteIndex === trip.steps.length - 1}
+                onCancel={onCloseRouteDetail}
+                onCaptureFieldUndo={onCaptureFieldUndo}
+                onDeleteRouteRow={onDeleteRouteRow}
+                onInsertRouteRow={onInsertRouteRow}
+                onMoveRouteRow={onMoveRouteRow}
+                onRememberEditStart={onRememberEditStart}
+                onSave={onCloseRouteDetail}
+                onUpdateRouteField={onUpdateRouteField}
+                step={editingStep}
+              />
+            ) : null}
+          </div>
+        </section>
+        <RouteCardFeedbackPreview trip={trip} />
       </div>
     </section>
   );
@@ -1314,6 +1412,7 @@ function RouteRow({
   draggingRouteIndex,
   dropTargetIndex,
   index,
+  isDesktopRouteLayout,
   isEditing,
   isLast,
   isSelected,
@@ -1364,6 +1463,7 @@ function RouteRow({
           dropTargetIndex={dropTargetIndex}
           hasRouteContent={hasRouteContent}
           index={index}
+          isDesktopRouteLayout={isDesktopRouteLayout}
           isEditing={isEditing}
           isLast={isLast}
           isSelected={isSelected}
@@ -1421,6 +1521,7 @@ function RouteBlock({
   dropTargetIndex,
   hasRouteContent,
   index,
+  isDesktopRouteLayout,
   isEditing,
   isLast,
   isSelected,
@@ -1451,18 +1552,19 @@ function RouteBlock({
   return (
     <div
       className={classes}
-      data-route-edit-scope={isEditing ? true : undefined}
-      draggable={isEditing && isSelected && hasRouteContent}
+      data-route-edit-scope={isEditing && !isDesktopRouteLayout ? true : undefined}
+      draggable={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent}
+      onClick={isDesktopRouteLayout ? () => onEditRouteRow(index) : undefined}
       onDoubleClick={() => onEditRouteRow(index)}
-      data-drag-index={isEditing && isSelected && hasRouteContent ? index : undefined}
-      onDragEnd={isEditing && isSelected && hasRouteContent ? onEndRouteDrag : undefined}
-      onDragEnter={isEditing && isSelected && hasRouteContent ? () => onEnterRouteDropTarget(index) : undefined}
-      onDragLeave={isEditing && isSelected && hasRouteContent ? (event) => onLeaveRouteDropTarget(event, index) : undefined}
-      onDragOver={isEditing && isSelected && hasRouteContent ? (event) => onMoveOverRouteDropTarget(event, index) : undefined}
-      onDragStart={isEditing && isSelected && hasRouteContent ? (event) => onStartRouteDrag(event, index) : undefined}
-      onDrop={isEditing && isSelected && hasRouteContent ? (event) => onDropRouteCard(event, index) : undefined}
+      data-drag-index={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? index : undefined}
+      onDragEnd={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? onEndRouteDrag : undefined}
+      onDragEnter={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? () => onEnterRouteDropTarget(index) : undefined}
+      onDragLeave={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? (event) => onLeaveRouteDropTarget(event, index) : undefined}
+      onDragOver={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? (event) => onMoveOverRouteDropTarget(event, index) : undefined}
+      onDragStart={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? (event) => onStartRouteDrag(event, index) : undefined}
+      onDrop={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? (event) => onDropRouteCard(event, index) : undefined}
     >
-      {isEditing && isSelected ? (
+      {isEditing && isSelected && !isDesktopRouteLayout ? (
         <EditableRouteContent
           index={index}
           isLast={isLast}
@@ -1478,6 +1580,116 @@ function RouteBlock({
         <RouteContent step={step} />
       )}
     </div>
+  );
+}
+
+function RouteDetailPanel({
+  index,
+  isLast,
+  onCancel,
+  onCaptureFieldUndo,
+  onDeleteRouteRow,
+  onInsertRouteRow,
+  onMoveRouteRow,
+  onRememberEditStart,
+  onSave,
+  onUpdateRouteField,
+  step
+}) {
+  return (
+    <aside className="route-detail-panel" data-route-edit-scope>
+      <div className="route-detail-heading">
+        <strong>{`节点详情 ${String(index + 1).padStart(2, "0")}`}</strong>
+        <span>编辑的是统一路线资料</span>
+      </div>
+      <label>
+        <span>时间</span>
+        <input
+          value={step.time}
+          data-route-field="time"
+          data-index={index}
+          aria-label="时间"
+          onBlur={onCaptureFieldUndo}
+          onChange={(event) => onUpdateRouteField(index, "time", event.target.value)}
+          onFocus={onRememberEditStart}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") event.currentTarget.blur();
+          }}
+        />
+      </label>
+      <label>
+        <span>标题</span>
+        <input
+          value={step.title}
+          data-route-field="title"
+          data-index={index}
+          aria-label="路线标题"
+          onBlur={onCaptureFieldUndo}
+          onChange={(event) => onUpdateRouteField(index, "title", event.target.value)}
+          onFocus={onRememberEditStart}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") event.currentTarget.blur();
+          }}
+        />
+      </label>
+      <label>
+        <span>说明</span>
+        <textarea
+          rows="4"
+          value={step.note}
+          data-route-field="note"
+          data-index={index}
+          aria-label="路线说明"
+          onBlur={onCaptureFieldUndo}
+          onChange={(event) => onUpdateRouteField(index, "note", event.target.value)}
+          onFocus={onRememberEditStart}
+        />
+      </label>
+      <div className="route-item-controls" aria-label="路线操作">
+        <button type="button" onClick={() => onInsertRouteRow(index)}>
+          插入
+        </button>
+        <button type="button" onClick={() => onDeleteRouteRow(index)}>
+          删除
+        </button>
+        <button type="button" disabled={index === 0} onClick={() => onMoveRouteRow(index, -1)}>
+          上移
+        </button>
+        <button type="button" disabled={isLast} onClick={() => onMoveRouteRow(index, 1)}>
+          下移
+        </button>
+      </div>
+      <div className="route-detail-actions">
+        <button className="secondary-button" type="button" onClick={onCancel}>
+          取消
+        </button>
+        <button className="primary-button" type="button" onClick={onSave}>
+          保存
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function RouteCardFeedbackPreview({ trip }) {
+  const visibleText = getVisibleTemplateText(createTemplateDraft(trip, "card"));
+
+  return (
+    <aside className="route-card-preview" aria-label="小卡预览">
+      <div className="route-card-preview-copy">
+        <strong>小卡预览</strong>
+        <span>结果反馈，不在这里编辑</span>
+      </div>
+      <section className="small-card-stage route-card-preview-stage" aria-label="小卡路线图">
+        <article className="sticky-route-card">
+          {visibleText.title ? <p className="small-card-text small-card-title">{visibleText.title}</p> : null}
+          {visibleText.title && visibleText.route ? <div className="small-card-divider" aria-hidden="true" /> : null}
+          {visibleText.route ? <p className="small-card-text small-card-route">{visibleText.route}</p> : null}
+          {(visibleText.title || visibleText.route) && visibleText.meta ? <div className="small-card-divider" aria-hidden="true" /> : null}
+          {visibleText.meta ? <p className="small-card-text small-card-meta">{visibleText.meta}</p> : null}
+        </article>
+      </section>
+    </aside>
   );
 }
 
@@ -1584,7 +1796,8 @@ function TemplateEditScreen({
   onSelectTemplate,
   onSelectTimelineSize,
   onToggleField,
-  onUpdateDraftField
+  onUpdateDraftField,
+  toastMessage
 }) {
   const template = templateOptions.find((option) => option.id === selectedTemplate) || templateOptions[1];
   const isTimelineTemplate = selectedTemplate === "timeline";
@@ -1594,8 +1807,9 @@ function TemplateEditScreen({
       <div className="template-mode-switcher" aria-label="切换模板">
         {templateOptions.map((option) => (
           <button
-            className={option.id === selectedTemplate ? "is-selected" : ""}
+            className={`${option.id === selectedTemplate ? "is-selected" : ""} ${option.disabled ? "is-disabled" : ""}`}
             type="button"
+            aria-disabled={String(Boolean(option.disabled))}
             key={option.id}
             onClick={() => onSelectTemplate(option.id)}
           >
@@ -1637,6 +1851,9 @@ function TemplateEditScreen({
           onChange={() => onToggleField("meta")}
         />
       </section>
+      <p className="status-message template-status" aria-live="polite">
+        {toastMessage}
+      </p>
     </section>
   );
 }
@@ -1916,7 +2133,7 @@ function BottomBar({ canUndo, routeMode, screen, onDownloadA4, onDownloadCard, o
         </button>
       </div>
       <div className={`button-row two-up ${actionKey === "preview" ? "is-active" : ""}`} data-actions-for="preview">
-        <button className="secondary-button" id="downloadA4Button" type="button" onClick={onDownloadA4}>
+        <button className="secondary-button is-disabled" id="downloadA4Button" type="button" aria-disabled="true" onClick={onDownloadA4}>
           A4打印版
         </button>
         <button className="primary-button" id="downloadCardButton" type="button" onClick={onDownloadCard}>
