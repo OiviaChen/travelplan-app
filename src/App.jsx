@@ -104,7 +104,8 @@ const purposeOptions = [
     id: "timeline",
     title: "时间轴",
     subtitle: "旅行手帐",
-    templateId: "timeline"
+    templateId: "timeline",
+    disabled: true
   }
 ];
 
@@ -116,7 +117,7 @@ const sampleTripText = [
 const homePlaceholder = "（有内置测试文字，可直接生成路线体验）\n将文字攻略或者视频逐字稿粘贴进来，\n我将帮你生成旅行路线~";
 
 const screenMeta = {
-  purpose: { title: "你想制作什么？", progress: 0 },
+  purpose: { title: "走走自然", progress: 0 },
   home: { title: "导入行程", progress: 1 },
   route: { title: "路线编辑", progress: 2 },
   template: { title: "选择模版", progress: 2 },
@@ -316,7 +317,7 @@ function normalizePreviewText(value) {
 }
 
 function buildCardRouteStep(step) {
-  const title = normalizePreviewText(step?.title);
+  const title = normalizePreviewText(step?.direction || step?.title);
   return title;
 }
 
@@ -720,12 +721,11 @@ function createA4Canvas({ title, route, meta }) {
 
 function App() {
   const [screen, setScreen] = useState("purpose");
-  const [routeMode, setRouteMode] = useState("view");
   const [selectedPurpose, setSelectedPurpose] = useState("card");
   const [selectedTemplate, setSelectedTemplate] = useState("card");
   const [selectedTimelineSize, setSelectedTimelineSize] = useState("passport");
   const [templateDrafts, setTemplateDrafts] = useState(() => createTemplateDrafts(defaultTrip));
-  const [undoStack, setUndoStack] = useState([]);
+  const [, setUndoStack] = useState([]);
   const [draggingRouteIndex, setDraggingRouteIndex] = useState(null);
   const [dropTargetIndex, setDropTargetIndex] = useState(null);
   const [editingRouteIndex, setEditingRouteIndex] = useState(null);
@@ -796,7 +796,6 @@ function App() {
   function goToScreen(nextScreen) {
     setScreen(nextScreen);
     if (nextScreen !== "route") {
-      setRouteMode("view");
       setEditingRouteIndex(null);
       setEditingHeaderField(null);
     }
@@ -809,7 +808,6 @@ function App() {
     const generatedTrip = buildTripFromInput(sourceText);
     setTrip(generatedTrip);
     setTemplateDrafts(createTemplateDrafts(generatedTrip));
-    setRouteMode("view");
     setSelectedTemplate(purpose.templateId);
     goToScreen("route");
   }
@@ -882,20 +880,8 @@ function App() {
     goToScreen(target);
   }
 
-  function startEditMode() {
-    setRouteMode("view");
-  }
-
-  function finishEditMode() {
-    setRouteMode("view");
-    setUndoStack([]);
-    setEditingRouteIndex(null);
-    setEditingHeaderField(null);
-  }
-
   function createNewRoute() {
     setTrip(cloneTrip(defaultTrip));
-    setRouteMode("view");
     setSelectedPurpose("card");
     setSelectedTemplate("card");
     setTemplateDrafts(createTemplateDrafts(defaultTrip));
@@ -908,16 +894,6 @@ function App() {
     setSourceText("");
     setToastMessage("");
     goToScreen("purpose");
-  }
-
-  function undoLastEdit() {
-    setUndoStack((current) => {
-      const previousTrip = current[current.length - 1];
-      if (!previousTrip) return current;
-      setTrip(previousTrip);
-      setRouteMode("view");
-      return current.slice(0, -1);
-    });
   }
 
   function rememberEditStart() {
@@ -965,7 +941,7 @@ function App() {
       ...current,
       steps: [
         ...current.steps.slice(0, index + 1),
-        { time: "", title: "", note: "" },
+        { time: "", title: "", direction: "", note: "" },
         ...current.steps.slice(index + 1)
       ]
     }));
@@ -981,7 +957,7 @@ function App() {
       if (current.steps.length <= 1) {
         return {
           ...current,
-          steps: [{ time: "", title: "", note: "" }]
+          steps: [{ time: "", title: "", direction: "", note: "" }]
         };
       }
 
@@ -1043,11 +1019,14 @@ function App() {
 
       const currentRoute = {
         title: steps[sourceIndex].title,
+        direction: steps[sourceIndex].direction,
         note: steps[sourceIndex].note
       };
       steps[sourceIndex].title = steps[targetIndex].title;
+      steps[sourceIndex].direction = steps[targetIndex].direction;
       steps[sourceIndex].note = steps[targetIndex].note;
       steps[targetIndex].title = currentRoute.title;
+      steps[targetIndex].direction = currentRoute.direction;
       steps[targetIndex].note = currentRoute.note;
       return { ...current, steps };
     });
@@ -1182,15 +1161,10 @@ function App() {
       </main>
 
       <BottomBar
-        canUndo={undoStack.length > 0}
-        routeMode={routeMode}
         screen={screen}
         onDownloadA4={downloadA4Print}
         onDownloadCard={downloadSmallCard}
-        onFinishEdit={finishEditMode}
         onGoToScreen={goToScreen}
-        onStartEdit={startEditMode}
-        onUndo={undoLastEdit}
       />
       <DownloadSuccessModal
         isOpen={isDownloadModalOpen}
@@ -1404,6 +1378,15 @@ function RouteScreen({
         </section>
         <RouteCardFeedbackPreview trip={trip} />
       </div>
+      {!isDesktopRouteLayout && editingStep ? (
+        <RouteBottomSheet
+          index={editingRouteIndex}
+          onCancel={onCloseRouteDetail}
+          onSave={onCloseRouteDetail}
+          onUpdateRouteField={onUpdateRouteField}
+          step={editingStep}
+        />
+      ) : null}
     </section>
   );
 }
@@ -1432,7 +1415,7 @@ function RouteRow({
   step
 }) {
   const hasTimeLabel = Boolean(String(step.time || "").trim());
-  const hasRouteContent = Boolean(String(step.title || "").trim() || String(step.note || "").trim());
+  const hasRouteContent = Boolean(String(step.direction || step.title || step.note || "").trim());
   const rowClasses = [
     "route-row",
     !hasTimeLabel ? "has-empty-time" : "",
@@ -1450,6 +1433,7 @@ function RouteRow({
         <div className="time-block">
           <TimeBlock
             index={index}
+            isDesktopRouteLayout={isDesktopRouteLayout}
             isEditing={isEditing}
             isSelected={isSelected}
             onCaptureFieldUndo={onCaptureFieldUndo}
@@ -1489,6 +1473,7 @@ function RouteRow({
 
 function TimeBlock({
   index,
+  isDesktopRouteLayout,
   isEditing,
   isSelected,
   onCaptureFieldUndo,
@@ -1496,7 +1481,7 @@ function TimeBlock({
   onUpdateRouteField,
   step
 }) {
-  if (isEditing && isSelected) {
+  if (isDesktopRouteLayout && isEditing && isSelected) {
     return (
       <input
         value={step.time}
@@ -1553,32 +1538,18 @@ function RouteBlock({
     <div
       className={classes}
       data-route-edit-scope={isEditing && !isDesktopRouteLayout ? true : undefined}
-      draggable={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent}
-      onClick={isDesktopRouteLayout ? () => onEditRouteRow(index) : undefined}
+      draggable={false}
+      onClick={() => onEditRouteRow(index)}
       onDoubleClick={() => onEditRouteRow(index)}
-      data-drag-index={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? index : undefined}
-      onDragEnd={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? onEndRouteDrag : undefined}
-      onDragEnter={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? () => onEnterRouteDropTarget(index) : undefined}
-      onDragLeave={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? (event) => onLeaveRouteDropTarget(event, index) : undefined}
-      onDragOver={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? (event) => onMoveOverRouteDropTarget(event, index) : undefined}
-      onDragStart={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? (event) => onStartRouteDrag(event, index) : undefined}
-      onDrop={!isDesktopRouteLayout && isEditing && isSelected && hasRouteContent ? (event) => onDropRouteCard(event, index) : undefined}
+      data-drag-index={undefined}
+      onDragEnd={undefined}
+      onDragEnter={undefined}
+      onDragLeave={undefined}
+      onDragOver={undefined}
+      onDragStart={undefined}
+      onDrop={undefined}
     >
-      {isEditing && isSelected && !isDesktopRouteLayout ? (
-        <EditableRouteContent
-          index={index}
-          isLast={isLast}
-          onCaptureFieldUndo={onCaptureFieldUndo}
-          onDeleteRouteRow={onDeleteRouteRow}
-          onInsertRouteRow={onInsertRouteRow}
-          onMoveRouteRow={onMoveRouteRow}
-          onRememberEditStart={onRememberEditStart}
-          onUpdateRouteField={onUpdateRouteField}
-          step={step}
-        />
-      ) : (
-        <RouteContent step={step} />
-      )}
+      <RouteContent step={step} />
     </div>
   );
 }
@@ -1632,19 +1603,6 @@ function RouteDetailPanel({
           }}
         />
       </label>
-      <label>
-        <span>说明</span>
-        <textarea
-          rows="4"
-          value={step.note}
-          data-route-field="note"
-          data-index={index}
-          aria-label="路线说明"
-          onBlur={onCaptureFieldUndo}
-          onChange={(event) => onUpdateRouteField(index, "note", event.target.value)}
-          onFocus={onRememberEditStart}
-        />
-      </label>
       <div className="route-item-controls" aria-label="路线操作">
         <button type="button" onClick={() => onInsertRouteRow(index)}>
           插入
@@ -1693,69 +1651,46 @@ function RouteCardFeedbackPreview({ trip }) {
   );
 }
 
-function RouteContent({ step }) {
-  if (!String(step.title || "").trim() && !String(step.note || "").trim()) return null;
-
+function RouteBottomSheet({ index, onCancel, onSave, onUpdateRouteField, step }) {
   return (
-    <>
-      <strong>{step.title}</strong>
-      {step.note ? <p>{step.note}</p> : null}
-    </>
+    <div className="route-sheet-backdrop" data-route-edit-scope onClick={onCancel}>
+      <aside className="route-bottom-sheet" aria-label="编辑路线节点" onClick={(event) => event.stopPropagation()}>
+        <div className="route-detail-heading">
+          <strong>{`节点 ${String(index + 1).padStart(2, "0")}`}</strong>
+          <span>编辑当前路线资料</span>
+        </div>
+        <label>
+          <span>标题</span>
+          <input value={step.title || ""} onChange={(event) => onUpdateRouteField(index, "title", event.target.value)} />
+        </label>
+        <label>
+          <span>时间</span>
+          <input value={step.time || ""} onChange={(event) => onUpdateRouteField(index, "time", event.target.value)} />
+        </label>
+        <label>
+          <span>地点/方向</span>
+          <input value={step.direction || step.title || ""} onChange={(event) => onUpdateRouteField(index, "direction", event.target.value)} />
+        </label>
+        <div className="route-detail-actions">
+          <button className="secondary-button" type="button" onClick={onCancel}>
+            取消
+          </button>
+          <button className="primary-button" type="button" onClick={onSave}>
+            完成
+          </button>
+        </div>
+      </aside>
+    </div>
   );
 }
 
-function EditableRouteContent({
-  index,
-  isLast,
-  onCaptureFieldUndo,
-  onDeleteRouteRow,
-  onInsertRouteRow,
-  onMoveRouteRow,
-  onRememberEditStart,
-  onUpdateRouteField,
-  step
-}) {
+function RouteContent({ step }) {
+  const text = step.direction || step.title;
+  if (!String(text || "").trim()) return null;
+
   return (
     <>
-      <input
-        className="route-title-input"
-        value={step.title}
-        data-route-field="title"
-        data-index={index}
-        draggable="false"
-        aria-label="路线标题"
-        onBlur={onCaptureFieldUndo}
-        onChange={(event) => onUpdateRouteField(index, "title", event.target.value)}
-        onFocus={onRememberEditStart}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") event.currentTarget.blur();
-        }}
-      />
-      <textarea
-        rows="2"
-        value={step.note}
-        data-route-field="note"
-        data-index={index}
-        draggable="false"
-        aria-label="路线说明"
-        onBlur={onCaptureFieldUndo}
-        onChange={(event) => onUpdateRouteField(index, "note", event.target.value)}
-        onFocus={onRememberEditStart}
-      />
-      <div className="route-item-controls" aria-label="路线操作" onClick={(event) => event.stopPropagation()}>
-        <button type="button" onClick={() => onInsertRouteRow(index)}>
-          插入
-        </button>
-        <button type="button" onClick={() => onDeleteRouteRow(index)}>
-          删除
-        </button>
-        <button type="button" disabled={index === 0} onClick={() => onMoveRouteRow(index, -1)}>
-          上移
-        </button>
-        <button type="button" disabled={isLast} onClick={() => onMoveRouteRow(index, 1)}>
-          下移
-        </button>
-      </div>
+      <strong>{text}</strong>
     </>
   );
 }
@@ -2106,25 +2041,14 @@ function PreviewScreen({ isActive, selectedTemplate, selectedTimelineSize, templ
   );
 }
 
-function BottomBar({ canUndo, routeMode, screen, onDownloadA4, onDownloadCard, onFinishEdit, onGoToScreen, onStartEdit, onUndo }) {
-  const actionKey = screen === "route" ? `route-${routeMode}` : screen;
+function BottomBar({ screen, onDownloadA4, onDownloadCard, onGoToScreen }) {
+  const actionKey = screen;
 
   return (
     <footer className="app-bottom-bar">
-      <div className={`button-row two-up ${actionKey === "route-view" ? "is-active" : ""}`} data-actions-for="route-view">
-        <button className="secondary-button" id="editRouteButton" type="button" disabled onClick={onStartEdit}>
-          修改
-        </button>
+      <div className={`button-row one-up ${actionKey === "route" ? "is-active" : ""}`} data-actions-for="route">
         <button className="primary-button" data-go="template-edit" type="button" onClick={() => onGoToScreen("templateEdit")}>
           生成路线图
-        </button>
-      </div>
-      <div className={`button-row two-up ${actionKey === "route-edit" ? "is-active" : ""}`} data-actions-for="route-edit">
-        <button className="secondary-button" id="cancelEditButton" type="button" disabled={!canUndo} onClick={onUndo}>
-          撤回
-        </button>
-        <button className="primary-button" id="finishEditButton" type="button" onClick={onFinishEdit}>
-          完成
         </button>
       </div>
       <div className={`button-row one-up ${actionKey === "templateEdit" ? "is-active" : ""}`} data-actions-for="template-edit">

@@ -119,6 +119,14 @@ button {
   background: #111;
 }
 
+.app-shell[data-screen="purpose"] .progress-segments {
+  display: none;
+}
+
+.app-shell[data-screen="purpose"] .app-header {
+  align-items: center;
+}
+
 .app-main {
   flex: 1 1 auto;
   display: flex;
@@ -151,10 +159,7 @@ button {
   padding-top: 24px;
 }
 
-.app-shell[data-screen="purpose"] .app-header {
-  display: none;
-}
-
+.app-shell[data-screen="purpose"] .app-header,
 .app-shell[data-screen="home"] .app-header,
 .app-shell[data-screen="route"] .app-header,
 .app-shell[data-screen="template"] .app-header,
@@ -166,6 +171,7 @@ button {
   padding: calc(40px + env(safe-area-inset-top)) max(28px, env(safe-area-inset-left)) 32px max(28px, env(safe-area-inset-right));
 }
 
+.app-shell[data-screen="purpose"] .back-icon-button,
 .app-shell[data-screen="home"] .back-icon-button,
 .app-shell[data-screen="route"] .back-icon-button,
 .app-shell[data-screen="template"] .back-icon-button,
@@ -174,6 +180,7 @@ button {
   margin-top: 8px;
 }
 
+.app-shell[data-screen="purpose"] .app-header h1,
 .app-shell[data-screen="home"] .app-header h1,
 .app-shell[data-screen="route"] .app-header h1,
 .app-shell[data-screen="template"] .app-header h1,
@@ -183,6 +190,7 @@ button {
   line-height: 1.18;
 }
 
+.app-shell[data-screen="purpose"] .header-copy,
 .app-shell[data-screen="home"] .header-copy,
 .app-shell[data-screen="route"] .header-copy,
 .app-shell[data-screen="template"] .header-copy,
@@ -191,6 +199,7 @@ button {
   gap: 8px;
 }
 
+.app-shell[data-screen="purpose"] .progress-segments,
 .app-shell[data-screen="home"] .progress-segments,
 .app-shell[data-screen="route"] .progress-segments,
 .app-shell[data-screen="template"] .progress-segments,
@@ -200,6 +209,7 @@ button {
   width: 256px;
 }
 
+.app-shell[data-screen="purpose"] .progress-segments span,
 .app-shell[data-screen="home"] .progress-segments span,
 .app-shell[data-screen="route"] .progress-segments span,
 .app-shell[data-screen="template"] .progress-segments span,
@@ -641,22 +651,58 @@ input {
   display: none;
 }
 
-.button-row[data-actions-for="route-edit"] {
-  gap: 16px;
+.route-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px max(16px, env(safe-area-inset-left)) calc(16px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-right));
+  background: rgba(0, 0, 0, 0.32);
 }
 
-.button-row[data-actions-for="route-edit"] .secondary-button {
-  flex: 0 0 88px;
-  min-height: 48px;
-  font-size: 20px;
-  box-shadow: 0 18px 18px rgba(0, 0, 0, 0.24);
+.route-bottom-sheet {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-height: min(78vh, 560px);
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid #d8d8d8;
+  border-radius: 18px 18px 12px 12px;
+  background: #fff;
+  box-shadow: 0 -18px 36px rgba(0, 0, 0, 0.2);
 }
 
-.button-row[data-actions-for="route-edit"] .primary-button {
-  flex: 1 1 auto;
-  min-height: 48px;
-  font-size: 20px;
-  box-shadow: 0 18px 18px rgba(0, 0, 0, 0.24);
+.route-bottom-sheet label {
+  display: grid;
+  gap: 6px;
+}
+
+.route-bottom-sheet label span {
+  color: #777;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.route-bottom-sheet input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  background: #f4f4f4;
+  color: #111;
+}
+
+.route-bottom-sheet .route-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.route-bottom-sheet .route-detail-actions button {
+  min-height: 44px;
+  font-size: 16px;
 }
 
 .template-stack {
@@ -1355,11 +1401,11 @@ input {
   box-shadow: 0 18px 18px rgba(0, 0, 0, 0.24);
 }
 
-.button-row[data-actions-for="route-view"] {
+.button-row[data-actions-for="route"] {
   gap: 8px;
 }
 
-.button-row[data-actions-for="route-view"] button {
+.button-row[data-actions-for="route"] button {
   min-height: 48px;
   font-size: 20px;
   box-shadow: 0 18px 18px rgba(0, 0, 0, 0.24);
@@ -1694,9 +1740,13 @@ input {
     padding: 32px 0;
   }
 
-  body:has(.app-shell[data-screen="route"]) {
+  body:has(.app-shell[data-screen="purpose"]),
+  body:has(.app-shell[data-screen="home"]),
+  body:has(.app-shell[data-screen="route"]),
+  body:has(.app-shell[data-screen="templateEdit"]),
+  body:has(.app-shell[data-screen="preview"]) {
     padding: 0;
-    background: #f2f2f2;
+    background: transparent;
   }
 
   .app-shell {
@@ -1704,7 +1754,11 @@ input {
     min-height: calc(100vh - 64px);
   }
 
-  .app-shell[data-screen="route"] {
+  .app-shell[data-screen="purpose"],
+  .app-shell[data-screen="home"],
+  .app-shell[data-screen="route"],
+  .app-shell[data-screen="templateEdit"],
+  .app-shell[data-screen="preview"] {
     max-width: none;
     min-height: 100vh;
     margin: 0;
@@ -1715,30 +1769,50 @@ input {
     padding: 40px 48px 24px;
   }
 
-  .app-shell[data-screen="route"] .app-header {
+  .app-shell[data-screen="purpose"] .app-header,
+  .app-shell[data-screen="home"] .app-header,
+  .app-shell[data-screen="route"] .app-header,
+  .app-shell[data-screen="templateEdit"] .app-header,
+  .app-shell[data-screen="preview"] .app-header {
     min-height: 56px;
     padding: 12px 16px;
     border-bottom: 1px solid #d8d8d8;
     background: #fff;
   }
 
-  .app-shell[data-screen="route"] .back-icon-button {
+  .app-shell[data-screen="purpose"] .back-icon-button,
+  .app-shell[data-screen="home"] .back-icon-button,
+  .app-shell[data-screen="route"] .back-icon-button,
+  .app-shell[data-screen="templateEdit"] .back-icon-button,
+  .app-shell[data-screen="preview"] .back-icon-button {
     width: 32px;
     height: 32px;
     margin-top: 0;
     font-size: 24px;
   }
 
-  .app-shell[data-screen="route"] .app-header h1 {
+  .app-shell[data-screen="purpose"] .app-header h1,
+  .app-shell[data-screen="home"] .app-header h1,
+  .app-shell[data-screen="route"] .app-header h1,
+  .app-shell[data-screen="templateEdit"] .app-header h1,
+  .app-shell[data-screen="preview"] .app-header h1 {
     font-size: 20px;
     line-height: 1.1;
   }
 
-  .app-shell[data-screen="route"] .progress-segments {
+  .app-shell[data-screen="purpose"] .progress-segments,
+  .app-shell[data-screen="home"] .progress-segments,
+  .app-shell[data-screen="route"] .progress-segments,
+  .app-shell[data-screen="templateEdit"] .progress-segments,
+  .app-shell[data-screen="preview"] .progress-segments {
     width: 180px;
   }
 
-  .app-shell[data-screen="route"] .progress-segments span {
+  .app-shell[data-screen="purpose"] .progress-segments span,
+  .app-shell[data-screen="home"] .progress-segments span,
+  .app-shell[data-screen="route"] .progress-segments span,
+  .app-shell[data-screen="templateEdit"] .progress-segments span,
+  .app-shell[data-screen="preview"] .progress-segments span {
     height: 8px;
   }
 
@@ -1746,12 +1820,164 @@ input {
     padding: 40px 48px 152px;
   }
 
+  #screen-purpose.is-active {
+    display: grid;
+    align-content: start;
+    gap: 24px;
+    width: min(calc(100% - 28px), 971px);
+    height: calc(100vh - 56px - 118px);
+    margin: 14px auto 96px;
+    padding: 28px;
+    border: 1px solid #d8d8d8;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+  }
+
   #screen-home {
     padding-top: 24px;
   }
 
   #screen-route {
-    padding: 14px;
+    padding: 14px 14px 96px;
+  }
+
+  #screen-home.is-active,
+  #screen-template-edit.is-active,
+  #screen-preview.is-active {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+    gap: 24px;
+    align-items: start;
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 14px 14px 96px;
+  }
+
+  #screen-template-edit.is-active {
+    min-height: calc(100vh - 56px - 118px);
+    align-items: stretch;
+    gap: 0 24px;
+  }
+
+  #screen-home.is-active {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(48px, 1fr);
+    width: min(calc(100% - 28px), 971px);
+    height: calc(100vh - 56px - 118px);
+    margin: 14px auto 96px;
+    padding: 28px;
+    border: 1px solid #d8d8d8;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+  }
+
+  #screen-preview.is-active {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: calc(100vh - 56px - 118px);
+    align-items: stretch;
+    gap: 0 24px;
+  }
+
+  #screen-preview > #templatePreview,
+  #screen-preview > .status-message {
+    width: min(calc(100vw - 28px), 971px);
+    background: #fff;
+    border-right: 1px solid #d8d8d8;
+    border-left: 1px solid #d8d8d8;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+  }
+
+  #screen-preview > #templatePreview {
+    align-items: center;
+    min-height: 0;
+    padding: 18px;
+    border-top: 1px solid #d8d8d8;
+    border-radius: 18px 18px 0 0;
+  }
+
+  #screen-preview > .status-message {
+    min-height: 0;
+    margin-top: 0;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #d8d8d8;
+    border-radius: 0 0 18px 18px;
+  }
+
+  #screen-home .home-title {
+    margin-bottom: 0;
+  }
+
+  #screen-home #sourceText {
+    height: clamp(536px, calc(100vh - 400px), 652px);
+    min-height: 0;
+  }
+
+  #screen-home .home-action-row {
+    align-self: end;
+    margin-top: 0;
+  }
+
+  #screen-home > *,
+  #screen-template-edit > .template-mode-switcher,
+  #screen-template-edit > .timeline-size-switcher,
+  #screen-template-edit > .template-edit-preview,
+  #screen-template-edit > .template-status,
+  #screen-preview > #templatePreview,
+  #screen-preview > .status-message {
+    grid-column: 1;
+    max-width: none;
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  #screen-template-edit > .template-field-panel {
+    position: sticky;
+    top: 70px;
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    align-self: stretch;
+    align-content: start;
+    max-width: none;
+    margin-right: 0;
+    margin-left: 0;
+    border-color: #d8d8d8;
+    border-radius: 18px;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+  }
+
+  #screen-template-edit > .template-mode-switcher,
+  #screen-template-edit > .timeline-size-switcher,
+  #screen-template-edit > .template-edit-preview,
+  #screen-template-edit > .template-status {
+    padding-right: 18px;
+    padding-left: 18px;
+    background: #fff;
+    border-right: 1px solid #d8d8d8;
+    border-left: 1px solid #d8d8d8;
+  }
+
+  #screen-template-edit > .template-mode-switcher {
+    padding-top: 18px;
+    border-top: 1px solid #d8d8d8;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+  }
+
+  #screen-template-edit > .template-edit-preview {
+    padding-top: 24px;
+  }
+
+  #screen-template-edit > .template-status {
+    min-height: 0;
+    margin-top: 0;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #d8d8d8;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
   }
 
   .route-workbench {
@@ -1759,6 +1985,9 @@ input {
     grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
     gap: 24px;
     align-items: stretch;
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
     min-height: calc(100vh - 56px - 118px);
   }
 
@@ -1807,6 +2036,7 @@ input {
     top: 70px;
     align-self: stretch;
     min-height: 0;
+    overflow: auto;
     padding: 20px 14px 22px;
     border-color: #d8d8d8;
     border-radius: 18px;
@@ -1817,15 +2047,18 @@ input {
   .route-card-preview-stage {
     align-items: center;
     justify-content: center;
+    width: 382px;
+    max-width: 100%;
+    height: 432px;
+    margin: 20px auto 0;
     min-height: 0;
-    padding-top: 57px;
   }
 
   .route-card-preview .sticky-route-card {
     width: 354px;
     max-width: none;
     transform: none;
-    zoom: calc((30vw - 64px) / 354px);
+    zoom: 0.74;
   }
 
   .route-workspace.has-detail .route-card-preview .sticky-route-card {
@@ -1853,19 +2086,28 @@ input {
     padding-left: 48px;
   }
 
-  .app-shell[data-screen="route"] .app-bottom-bar {
-    position: static;
+  .app-shell[data-screen="route"] .app-bottom-bar,
+  .app-shell[data-screen="templateEdit"] .app-bottom-bar,
+  .app-shell[data-screen="preview"] .app-bottom-bar {
+    position: fixed;
+    right: auto;
+    bottom: 0;
+    left: 50%;
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
     gap: 24px;
     width: 100%;
-    max-width: none;
-    transform: none;
+    max-width: 1440px;
+    margin: 0 auto;
+    transform: translateX(-50%);
     padding: 0 14px 14px;
-    background: #f2f2f2;
+    background: transparent;
   }
 
-  .app-shell[data-screen="route"] .app-bottom-bar .button-row {
+  .app-shell[data-screen="route"] .app-bottom-bar .button-row,
+  .app-shell[data-screen="templateEdit"] .app-bottom-bar .button-row,
+  .app-shell[data-screen="preview"] .app-bottom-bar .button-row {
     grid-column: 1;
+    width: min(100%, 971px);
   }
 }
