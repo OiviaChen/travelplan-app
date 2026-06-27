@@ -19,6 +19,15 @@ body {
   padding: 0;
 }
 
+:root {
+  --desktop-content-max: 1440px;
+  --desktop-main-max: 971px;
+  --desktop-grid-gap: 20px;
+  --paper-border: #d8d8d8;
+  --paper-panel-radius: 8px;
+  --paper-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
 button,
 input,
 textarea {
@@ -241,21 +250,22 @@ button {
 
 .purpose-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
+  grid-template-columns: minmax(0, 1fr) 80px;
   align-items: center;
   gap: 16px;
   width: 100%;
   min-height: 136px;
   padding: 24px 16px;
-  border: 1px solid #111;
-  border-radius: 10px;
+  border: 1px solid #c8c8c8;
+  border-radius: 8px;
   background: #fff;
   color: #111;
   text-align: left;
 }
 
 .purpose-card.is-selected {
-  background: #f7f7f7;
+  border-color: #111;
+  background: #f2f2f2;
 }
 
 .purpose-card.is-disabled {
@@ -290,8 +300,8 @@ button {
 .purpose-card i {
   display: block;
   width: 100%;
-  height: 96px;
-  background: #d9d9d9;
+  height: 80px;
+  background: #e6e6e6;
 }
 
 .home-input-block {
@@ -307,7 +317,7 @@ button {
 
 .home-action-row .primary-button {
   flex: 0 1 168px;
-  box-shadow: 0 18px 18px rgba(0, 0, 0, 0.24);
+  box-shadow: var(--paper-shadow);
 }
 
 .home-input-block span {
@@ -557,7 +567,7 @@ input {
 .route-list.is-editing .route-block.is-dragging {
   opacity: 0.55;
   transform: scale(0.98);
-  box-shadow: 0 16px 16px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
 }
 
 .route-list.is-editing .route-block.is-drop-target {
@@ -669,9 +679,9 @@ input {
   overflow: auto;
   padding: 18px;
   border: 1px solid #d8d8d8;
-  border-radius: 18px 18px 12px 12px;
+  border-radius: 12px 12px 8px 8px;
   background: #fff;
-  box-shadow: 0 -18px 36px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.14);
 }
 
 .route-bottom-sheet label {
@@ -724,8 +734,8 @@ input {
   width: 100%;
   min-height: 0;
   padding: 24px 16px 24px 24px;
-  border: 1px solid #111;
-  border-radius: 10px;
+  border: 1px solid #c8c8c8;
+  border-radius: 8px;
   background: #fff;
   color: #111;
   text-align: left;
@@ -765,13 +775,13 @@ input {
   max-width: 84px;
   height: 64px;
   border-radius: 0;
-  background: #d9d9d9;
+  background: #e6e6e6;
 }
 
 .template-card.is-selected {
   border-color: #111;
-  border-width: 2px;
-  background: #f7f7f7;
+  border-width: 1px;
+  background: #f2f2f2;
 }
 
 .template-card.is-disabled {
@@ -844,7 +854,7 @@ input {
 .template-edit-preview .preview-card {
   min-height: 488px;
   border: 1px solid #111;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #f3f3f3;
 }
 
@@ -926,7 +936,7 @@ input {
   width: 100%;
   padding: 16px 32px;
   border: 1px solid #111;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
 }
 
@@ -1398,7 +1408,7 @@ input {
   flex: 0 1 168px;
   min-height: 48px;
   font-size: 20px;
-  box-shadow: 0 18px 18px rgba(0, 0, 0, 0.24);
+  box-shadow: var(--paper-shadow);
 }
 
 .button-row[data-actions-for="route"] {
@@ -1408,7 +1418,7 @@ input {
 .button-row[data-actions-for="route"] button {
   min-height: 48px;
   font-size: 20px;
-  box-shadow: 0 18px 18px rgba(0, 0, 0, 0.24);
+  box-shadow: var(--paper-shadow);
 }
 
 .modal-backdrop {
@@ -1581,8 +1591,8 @@ input {
   .route-card-preview {
     display: grid;
     min-width: 0;
-    border: 1px solid #d8d8d8;
-    border-radius: 8px;
+    border: 1px solid var(--paper-border);
+    border-radius: var(--paper-panel-radius);
     background: #fff;
   }
 
@@ -1776,7 +1786,7 @@ input {
   .app-shell[data-screen="preview"] .app-header {
     min-height: 56px;
     padding: 12px 16px;
-    border-bottom: 1px solid #d8d8d8;
+    border-bottom: 1px solid var(--paper-border);
     background: #fff;
   }
 
@@ -1824,14 +1834,14 @@ input {
     display: grid;
     align-content: start;
     gap: 24px;
-    width: min(calc(100% - 28px), 971px);
+    width: min(calc(100% - 28px), var(--desktop-main-max));
     height: calc(100vh - 56px - 118px);
     margin: 14px auto 96px;
     padding: 28px;
-    border: 1px solid #d8d8d8;
-    border-radius: 18px;
+    border: 1px solid var(--paper-border);
+    border-radius: var(--paper-panel-radius);
     background: #fff;
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--paper-shadow);
   }
 
   #screen-home {
@@ -1847,10 +1857,10 @@ input {
   #screen-preview.is-active {
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
-    gap: 24px;
+    gap: var(--desktop-grid-gap);
     align-items: start;
     width: 100%;
-    max-width: 1440px;
+    max-width: var(--desktop-content-max);
     margin: 0 auto;
     padding: 14px 14px 96px;
   }
@@ -1858,20 +1868,20 @@ input {
   #screen-template-edit.is-active {
     min-height: calc(100vh - 56px - 118px);
     align-items: stretch;
-    gap: 0 24px;
+    gap: 0 var(--desktop-grid-gap);
   }
 
   #screen-home.is-active {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto minmax(48px, 1fr);
-    width: min(calc(100% - 28px), 971px);
+    width: min(calc(100% - 28px), var(--desktop-main-max));
     height: calc(100vh - 56px - 118px);
     margin: 14px auto 96px;
     padding: 28px;
-    border: 1px solid #d8d8d8;
-    border-radius: 18px;
+    border: 1px solid var(--paper-border);
+    border-radius: var(--paper-panel-radius);
     background: #fff;
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--paper-shadow);
   }
 
   #screen-preview.is-active {
@@ -1879,32 +1889,32 @@ input {
     grid-template-rows: minmax(0, 1fr) auto;
     min-height: calc(100vh - 56px - 118px);
     align-items: stretch;
-    gap: 0 24px;
+    gap: 0 var(--desktop-grid-gap);
   }
 
   #screen-preview > #templatePreview,
   #screen-preview > .status-message {
-    width: min(calc(100vw - 28px), 971px);
+    width: min(100%, var(--desktop-main-max));
     background: #fff;
-    border-right: 1px solid #d8d8d8;
-    border-left: 1px solid #d8d8d8;
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+    border-right: 1px solid var(--paper-border);
+    border-left: 1px solid var(--paper-border);
+    box-shadow: var(--paper-shadow);
   }
 
   #screen-preview > #templatePreview {
     align-items: center;
     min-height: 0;
     padding: 18px;
-    border-top: 1px solid #d8d8d8;
-    border-radius: 18px 18px 0 0;
+    border-top: 1px solid var(--paper-border);
+    border-radius: var(--paper-panel-radius) var(--paper-panel-radius) 0 0;
   }
 
   #screen-preview > .status-message {
     min-height: 0;
     margin-top: 0;
     padding-bottom: 18px;
-    border-bottom: 1px solid #d8d8d8;
-    border-radius: 0 0 18px 18px;
+    border-bottom: 1px solid var(--paper-border);
+    border-radius: 0 0 var(--paper-panel-radius) var(--paper-panel-radius);
   }
 
   #screen-home .home-title {
@@ -1944,9 +1954,9 @@ input {
     max-width: none;
     margin-right: 0;
     margin-left: 0;
-    border-color: #d8d8d8;
-    border-radius: 18px;
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+    border-color: var(--paper-border);
+    border-radius: var(--paper-panel-radius);
+    box-shadow: var(--paper-shadow);
   }
 
   #screen-template-edit > .template-mode-switcher,
@@ -1956,15 +1966,15 @@ input {
     padding-right: 18px;
     padding-left: 18px;
     background: #fff;
-    border-right: 1px solid #d8d8d8;
-    border-left: 1px solid #d8d8d8;
+    border-right: 1px solid var(--paper-border);
+    border-left: 1px solid var(--paper-border);
   }
 
   #screen-template-edit > .template-mode-switcher {
     padding-top: 18px;
-    border-top: 1px solid #d8d8d8;
-    border-radius: 18px 18px 0 0;
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--paper-border);
+    border-radius: var(--paper-panel-radius) var(--paper-panel-radius) 0 0;
+    box-shadow: var(--paper-shadow);
   }
 
   #screen-template-edit > .template-edit-preview {
@@ -1975,18 +1985,18 @@ input {
     min-height: 0;
     margin-top: 0;
     padding-bottom: 18px;
-    border-bottom: 1px solid #d8d8d8;
-    border-radius: 0 0 18px 18px;
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid var(--paper-border);
+    border-radius: 0 0 var(--paper-panel-radius) var(--paper-panel-radius);
+    box-shadow: var(--paper-shadow);
   }
 
   .route-workbench {
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
-    gap: 24px;
+    gap: var(--desktop-grid-gap);
     align-items: stretch;
     width: 100%;
-    max-width: 1440px;
+    max-width: var(--desktop-content-max);
     margin: 0 auto;
     min-height: calc(100vh - 56px - 118px);
   }
@@ -1994,18 +2004,18 @@ input {
   .route-main-panel {
     min-width: 0;
     padding: 18px;
-    border: 1px solid #d8d8d8;
-    border-radius: 18px;
+    border: 1px solid var(--paper-border);
+    border-radius: var(--paper-panel-radius);
     background: #fff;
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--paper-shadow);
   }
 
   #screen-route .route-hero {
     max-width: none;
     margin: 0 0 16px;
     padding: 28px 28px 18px;
-    border: 1px solid #d8d8d8;
-    border-radius: 16px;
+    border: 1px solid var(--paper-border);
+    border-radius: var(--paper-panel-radius);
     background: #fff;
   }
 
@@ -2038,10 +2048,10 @@ input {
     min-height: 0;
     overflow: auto;
     padding: 20px 14px 22px;
-    border-color: #d8d8d8;
-    border-radius: 18px;
+    border-color: var(--paper-border);
+    border-radius: var(--paper-panel-radius);
     background: #fff;
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--paper-shadow);
   }
 
   .route-card-preview-stage {
@@ -2095,9 +2105,9 @@ input {
     left: 50%;
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
-    gap: 24px;
+    gap: var(--desktop-grid-gap);
     width: 100%;
-    max-width: 1440px;
+    max-width: var(--desktop-content-max);
     margin: 0 auto;
     transform: translateX(-50%);
     padding: 0 14px 14px;
@@ -2108,6 +2118,6 @@ input {
   .app-shell[data-screen="templateEdit"] .app-bottom-bar .button-row,
   .app-shell[data-screen="preview"] .app-bottom-bar .button-row {
     grid-column: 1;
-    width: min(100%, 971px);
+    width: min(100%, var(--desktop-main-max));
   }
 }
