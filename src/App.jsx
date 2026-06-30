@@ -171,6 +171,53 @@ function buildTripFromInput(value) {
   };
 }
 
+async function analyzeRouteWithApi(sourceText) {
+  const response = await fetch("/api/analyze-route", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ text: sourceText })
+  });
+
+  if (!response.ok) {
+    throw new Error("Route analysis request failed");
+  }
+
+  const data = await response.json();
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return normalizeAiTrip(data, sourceText);
+}
+
+function normalizeAiTrip(aiResult, sourceText) {
+  const routeItems = Array.isArray(aiResult?.routeItems) ? aiResult.routeItems : [];
+  const steps = routeItems
+    .map((item) => ({
+      time: cleanRouteContent(item?.time).slice(0, 12),
+      title: cleanRouteContent(item?.title),
+      note: cleanRouteContent(item?.note).slice(0, 20)
+    }))
+    .filter((step) => step.title);
+
+  if (!steps.length) {
+    throw new Error("Route analysis returned no route items");
+  }
+
+  const meta = aiResult?.meta || {};
+  const difficulty = cleanRouteContent(meta.difficulty) || inferDifficulty(sourceText);
+  const routeType = cleanRouteContent(meta.type) || inferRouteType(sourceText);
+  const distance = cleanRouteContent(meta.distance) || inferDistanceLabel(sourceText);
+
+  return {
+    title: cleanRouteContent(aiResult?.title) || inferTripTitle(sourceText),
+    metadata: [difficulty, routeType, distance],
+    steps
+  };
+}
+
 function parseRouteLine(line) {
   const normalizedLine = String(line || "").replace(/\s+/g, " ").trim();
   const timeMatch = normalizedLine.match(/(?:^|\s)(\d{1,2}[:：]\d{2})(?:\s|$)/);
@@ -803,9 +850,16 @@ function App() {
     setIsDownloadModalOpen(false);
   }
 
-  function handleGenerateRoute() {
+  async function handleGenerateRoute() {
     const purpose = purposeOptions.find((option) => option.id === selectedPurpose) || purposeOptions[1];
-    const generatedTrip = buildTripFromInput(sourceText);
+    let generatedTrip;
+
+    try {
+      generatedTrip = await analyzeRouteWithApi(sourceText);
+    } catch (error) {
+      generatedTrip = buildTripFromInput(sourceText);
+    }
+
     setTrip(generatedTrip);
     setTemplateDrafts(createTemplateDrafts(generatedTrip));
     setSelectedTemplate(purpose.templateId);
