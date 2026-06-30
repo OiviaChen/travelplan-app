@@ -320,6 +320,10 @@ button {
   box-shadow: var(--paper-shadow);
 }
 
+.home-status {
+  text-align: right;
+}
+
 .home-input-block span {
   color: #333;
   font-size: 16px;
@@ -451,6 +455,23 @@ input {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+}
+
+.generated-summary,
+.route-summary-line {
+  margin: 0;
+  color: #504f4f;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.generated-summary {
+  display: grid;
+  gap: 2px;
+}
+
+.generated-summary p {
+  margin: 0;
 }
 
 .route-list {
