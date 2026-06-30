@@ -386,9 +386,10 @@ function createGeneratedSummary(trip) {
   };
 }
 
-function buildRouteSummaryLine(trip) {
-  const summary = createGeneratedSummary(trip);
-  return [`已整理 ${summary.count} 个路线节点`, summary.distance, summary.duration].filter(Boolean).join(" · ");
+function delay(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
 }
 
 function buildCardRouteStep(step) {
@@ -884,13 +885,14 @@ function App() {
     if (isGeneratingRoute) return;
 
     const purpose = purposeOptions.find((option) => option.id === selectedPurpose) || purposeOptions[1];
-    let generatedTrip;
     const loadingMessages = ["正在读取攻略…", "正在提取路线节点…", "正在整理成路线卡…"];
     let loadingMessageIndex = 0;
 
     setIsGeneratingRoute(true);
     setGeneratedSummary({ message: loadingMessages[loadingMessageIndex] });
     setToastMessage("");
+    setSelectedTemplate(purpose.templateId);
+    goToScreen("route");
 
     const loadingMessageTimer = window.setInterval(() => {
       loadingMessageIndex = Math.min(loadingMessageIndex + 1, loadingMessages.length - 1);
@@ -898,16 +900,33 @@ function App() {
     }, 900);
 
     try {
-      generatedTrip = await analyzeRouteWithApi(sourceText);
+      const generatedTrip = await analyzeRouteWithApi(sourceText);
       const summary = createGeneratedSummary(generatedTrip);
 
+      window.clearInterval(loadingMessageTimer);
       setTrip(generatedTrip);
       setTemplateDrafts(createTemplateDrafts(generatedTrip));
-      setSelectedTemplate(purpose.templateId);
       setGeneratedSummary(summary);
-      goToScreen("route");
+      await delay(1000);
     } catch (error) {
-      setGeneratedSummary({ message: "路线生成失败，请稍后再试" });
+      window.clearInterval(loadingMessageTimer);
+
+      if (import.meta.env.DEV) {
+        for (const message of loadingMessages) {
+          setGeneratedSummary({ message });
+          await delay(750);
+        }
+
+        const sampleTrip = cloneTrip(defaultTrip);
+        const summary = createGeneratedSummary(sampleTrip);
+        setTrip(sampleTrip);
+        setTemplateDrafts(createTemplateDrafts(sampleTrip));
+        setGeneratedSummary(summary);
+        await delay(1000);
+      } else {
+        setGeneratedSummary({ message: "路线生成失败，请稍后再试" });
+        await delay(1000);
+      }
     } finally {
       window.clearInterval(loadingMessageTimer);
       setIsGeneratingRoute(false);
@@ -1202,7 +1221,6 @@ function App() {
         />
         <HomeScreen
           isActive={screen === "home"}
-          generatedSummary={generatedSummary}
           isGeneratingRoute={isGeneratingRoute}
           sourceText={sourceText}
           onSourceTextChange={setSourceText}
@@ -1213,6 +1231,7 @@ function App() {
           dropTargetIndex={dropTargetIndex}
           isDesktopRouteLayout={isDesktopRouteLayout}
           isActive={screen === "route"}
+          isGeneratingRoute={isGeneratingRoute}
           onCaptureFieldUndo={captureFieldUndo}
           onDropRouteCard={dropRouteCard}
           onEndRouteDrag={endRouteDrag}
@@ -1334,7 +1353,7 @@ function PurposeScreen({ isActive, selectedPurpose, onSelectPurpose, toastMessag
   );
 }
 
-function HomeScreen({ generatedSummary, isActive, isGeneratingRoute, sourceText, onSourceTextChange, onGenerate }) {
+function HomeScreen({ isActive, isGeneratingRoute, sourceText, onSourceTextChange, onGenerate }) {
   return (
     <section className={`screen ${isActive ? "is-active" : ""}`} id="screen-home">
       <h2 className="home-title">导入行程</h2>
@@ -1349,12 +1368,9 @@ function HomeScreen({ generatedSummary, isActive, isGeneratingRoute, sourceText,
       </label>
       <div className="home-action-row">
         <button className="primary-button" id="generateButton" type="button" disabled={isGeneratingRoute} onClick={onGenerate}>
-          {isGeneratingRoute ? generatedSummary?.message || "正在读取攻略…" : "生成路线"}
+          生成路线
         </button>
       </div>
-      <p className="status-message home-status" aria-live="polite">
-        {generatedSummary?.message || ""}
-      </p>
     </section>
   );
 }
@@ -1367,6 +1383,7 @@ function RouteScreen({
   generatedSummary,
   isDesktopRouteLayout,
   isActive,
+  isGeneratingRoute,
   onCaptureFieldUndo,
   onCloseRouteDetail,
   onDropRouteCard,
@@ -1389,11 +1406,10 @@ function RouteScreen({
   const isRouteTitleEditing = editingHeaderField === "title";
   const hasLocalEdit = editingRouteIndex !== null || editingHeaderField !== null;
   const editingStep = editingRouteIndex !== null ? trip.steps[editingRouteIndex] : null;
-  const routeSummaryLine = buildRouteSummaryLine(trip);
 
   return (
     <section className={`screen ${isActive ? "is-active" : ""} ${hasLocalEdit ? "is-editing" : ""}`} id="screen-route">
-      <div className="route-workbench">
+      <div className={`route-workbench ${isGeneratingRoute ? "is-generating-route" : ""}`}>
         <section className="route-main-panel">
           <section className="route-hero">
             <h2 id="tripTitle" onDoubleClick={() => onEditHeaderField("title")}>
@@ -1439,15 +1455,6 @@ function RouteScreen({
                 </span>
               ))}
             </div>
-            {generatedSummary?.count ? (
-              <div className="generated-summary" aria-live="polite">
-                <p>已生成 {generatedSummary.count} 个路线节点</p>
-                {generatedSummary.type ? <p>路线类型：{generatedSummary.type}</p> : null}
-                {generatedSummary.distance ? <p>距离：{generatedSummary.distance}</p> : null}
-                {generatedSummary.duration ? <p>预计耗时：{generatedSummary.duration}</p> : null}
-              </div>
-            ) : null}
-            <p className="route-summary-line">{routeSummaryLine}</p>
           </section>
           <div id="routeEditor" className={`route-workspace ${editingRouteIndex !== null ? "has-detail" : ""}`}>
             <div className={`route-list ${editingRouteIndex !== null ? "is-editing" : ""}`}>
@@ -1497,6 +1504,7 @@ function RouteScreen({
         </section>
         <RouteCardFeedbackPreview trip={trip} />
       </div>
+      {isGeneratingRoute ? <GenerationModal summary={generatedSummary} /> : null}
       {!isDesktopRouteLayout && editingStep ? (
         <RouteBottomSheet
           index={editingRouteIndex}
@@ -1507,6 +1515,25 @@ function RouteScreen({
         />
       ) : null}
     </section>
+  );
+}
+
+function GenerationModal({ summary }) {
+  const statusText = summary?.message || (summary?.count ? `已生成 ${summary.count} 个路线节点` : "正在读取攻略…");
+
+  return (
+    <div className="modal-backdrop generation-modal-backdrop" role="status" aria-live="polite" aria-label="路线生成状态">
+      <div className="generation-modal">
+        <p>{statusText}</p>
+        {summary?.count && !summary?.message ? (
+          <div className="generation-modal-summary">
+            {summary.type ? <span>路线类型：{summary.type}</span> : null}
+            {summary.distance ? <span>距离：{summary.distance}</span> : null}
+            {summary.duration ? <span>预计耗时：{summary.duration}</span> : null}
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
