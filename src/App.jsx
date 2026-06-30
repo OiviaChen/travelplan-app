@@ -116,6 +116,8 @@ const sampleTripText = [
 
 const homePlaceholder = "（有内置测试文字，可直接生成路线体验）\n将文字攻略或者视频逐字稿粘贴进来，\n我将帮你生成旅行路线~";
 
+const routeGenerationStages = ["正在读取攻略…", "正在提取路线节点…", "正在整理成路线卡…"];
+
 const screenMeta = {
   purpose: { title: "走走自然", progress: 0 },
   home: { title: "导入行程", progress: 1 },
@@ -167,7 +169,7 @@ function buildTripFromInput(value) {
   return {
     title: inferTripTitle(sourceForParsing),
     metadata: [inferDifficulty(sourceForParsing), inferRouteType(sourceForParsing), inferDistanceLabel(sourceForParsing)],
-    steps: lines.slice(0, 8).map(parseRouteLine)
+    steps: lines.slice(0, 8).map(parseRouteLine).map(normalizeRouteStep)
   };
 }
 
@@ -195,11 +197,13 @@ async function analyzeRouteWithApi(sourceText) {
 function normalizeAiTrip(aiResult, sourceText) {
   const routeItems = Array.isArray(aiResult?.routeItems) ? aiResult.routeItems : [];
   const steps = routeItems
-    .map((item) => ({
-      time: cleanRouteContent(item?.time).slice(0, 12),
-      title: cleanRouteContent(item?.title),
-      note: cleanRouteContent(item?.note).slice(0, 20)
-    }))
+    .map((item) =>
+      normalizeRouteStep({
+        time: cleanRouteContent(item?.time).slice(0, 12),
+        title: cleanRouteContent(item?.title),
+        note: cleanRouteContent(item?.note).slice(0, 20)
+      })
+    )
     .filter((step) => step.title);
 
   if (!steps.length) {
@@ -361,6 +365,54 @@ function cleanRouteContent(value) {
     .slice(0, 42);
 }
 
+function extractDurationValue(value) {
+  const source = normalizePreviewText(value)
+    .replace(/[()（）]/g, "")
+    .replace(/^(?:预计|大约|约|大概|耗时|用时|时长|需要)+\s*/, "")
+    .replace(/^(?:预计|大约|约|大概)?\s*(?:耗时|用时|时长|需要)\s*/, "");
+  const durationMatch = source.match(/(\d+(?:\.\d+)?(?:\s*[-~～至到]\s*\d+(?:\.\d+)?)?\s*(?:分钟|分|小时|钟头|h|hr|hrs|min|mins))/i);
+  if (!durationMatch) return "";
+
+  return durationMatch[1]
+    .replace(/\s*([-~～至到])\s*/g, "$1")
+    .replace(/\s+(分钟|分|小时|钟头|h|hr|hrs|min|mins)$/i, "$1")
+    .trim();
+}
+
+function isDurationLabel(value) {
+  const normalizedValue = normalizePreviewText(value);
+  return Boolean(normalizedValue && extractDurationValue(normalizedValue));
+}
+
+function formatDurationNote(value) {
+  const durationValue = extractDurationValue(value);
+  return durationValue ? `（约耗时${durationValue}）` : "";
+}
+
+function appendDurationToText(text, durationNote) {
+  const normalizedText = String(text || "").trim();
+  if (!durationNote) return normalizedText;
+  const durationValue = durationNote.replace(/^（约耗时/, "").replace(/）$/, "");
+  if (normalizedText.includes(durationNote) || normalizedText.includes(`约耗时${durationValue}`)) return normalizedText;
+  return `${normalizedText}${durationNote}`;
+}
+
+function normalizeRouteStep(step) {
+  const nextStep = { ...step };
+  if (!isDurationLabel(nextStep.time)) return nextStep;
+
+  const durationNote = formatDurationNote(nextStep.time);
+  nextStep.time = "";
+
+  if (normalizePreviewText(nextStep.direction)) {
+    nextStep.direction = appendDurationToText(nextStep.direction, durationNote);
+  } else {
+    nextStep.title = appendDurationToText(nextStep.title, durationNote);
+  }
+
+  return nextStep;
+}
+
 function isFixedTimeStep(step) {
   return /^\d{1,2}:\d{2}$/.test(String(step.time || "").trim());
 }
@@ -392,13 +444,17 @@ function delay(ms) {
   });
 }
 
+function getRouteMainText(step) {
+  return step?.direction || step?.title || "";
+}
+
 function buildCardRouteStep(step) {
-  const title = normalizePreviewText(step?.direction || step?.title);
+  const title = normalizePreviewText(getRouteMainText(step));
   return title;
 }
 
 function buildCardRouteText(steps) {
-  const routeSteps = (steps || []).map(buildCardRouteStep).filter(Boolean);
+  const routeSteps = (steps || []).map(normalizeRouteStep).map(buildCardRouteStep).filter(Boolean);
   if (!routeSteps.length) return "未填写路线";
 
   return routeSteps.map((step, index) => (index === 0 ? step : `→ ${step}`)).join("\n");
@@ -412,9 +468,10 @@ function buildCardMetadataText(trip) {
 
 function buildDetailedRouteText(steps) {
   const detailSteps = (steps || [])
+    .map(normalizeRouteStep)
     .map((step) => {
       const time = normalizePreviewText(step?.time);
-      const title = normalizePreviewText(step?.title);
+      const title = normalizePreviewText(getRouteMainText(step));
       const note = normalizePreviewText(step?.note);
       if (!title && !note) return "";
       return [time, title, note].filter(Boolean).join("｜");
@@ -425,9 +482,10 @@ function buildDetailedRouteText(steps) {
 
 function buildTimelineRouteText(steps) {
   const timelineSteps = (steps || [])
+    .map(normalizeRouteStep)
     .map((step) => {
       const time = normalizePreviewText(step?.time);
-      const title = normalizePreviewText(step?.title);
+      const title = normalizePreviewText(getRouteMainText(step));
       if (!title) return "";
       return isFixedTimeStep(step) ? `${time}  ${title}` : title;
     })
@@ -469,10 +527,11 @@ function getTimelineItems(routeText) {
 function createTemplateDraft(trip, templateId = "card") {
   const metadata = buildCardMetadataText(trip);
   const title = trip?.title || "";
+  const steps = (trip?.steps || []).map(normalizeRouteStep);
   const routeBuilders = {
-    detailed: () => buildDetailedRouteText(trip?.steps || []),
-    card: () => buildCardRouteText(trip?.steps || []),
-    timeline: () => buildTimelineRouteText(trip?.steps || [])
+    detailed: () => buildDetailedRouteText(steps),
+    card: () => buildCardRouteText(steps),
+    timeline: () => buildTimelineRouteText(steps)
   };
   const metaBuilders = {
     detailed: () => `${metadata}\n适合 A4 打印，可保留详细交通、停留和提醒。`.trim(),
@@ -885,18 +944,17 @@ function App() {
     if (isGeneratingRoute) return;
 
     const purpose = purposeOptions.find((option) => option.id === selectedPurpose) || purposeOptions[1];
-    const loadingMessages = ["正在读取攻略…", "正在提取路线节点…", "正在整理成路线卡…"];
     let loadingMessageIndex = 0;
 
     setIsGeneratingRoute(true);
-    setGeneratedSummary({ message: loadingMessages[loadingMessageIndex] });
+    setGeneratedSummary({ message: routeGenerationStages[loadingMessageIndex], stageIndex: loadingMessageIndex });
     setToastMessage("");
     setSelectedTemplate(purpose.templateId);
     goToScreen("route");
 
     const loadingMessageTimer = window.setInterval(() => {
-      loadingMessageIndex = Math.min(loadingMessageIndex + 1, loadingMessages.length - 1);
-      setGeneratedSummary({ message: loadingMessages[loadingMessageIndex] });
+      loadingMessageIndex = Math.min(loadingMessageIndex + 1, routeGenerationStages.length - 1);
+      setGeneratedSummary({ message: routeGenerationStages[loadingMessageIndex], stageIndex: loadingMessageIndex });
     }, 900);
 
     try {
@@ -912,8 +970,8 @@ function App() {
       window.clearInterval(loadingMessageTimer);
 
       if (import.meta.env.DEV) {
-        for (const message of loadingMessages) {
-          setGeneratedSummary({ message });
+        for (const [stageIndex, message] of routeGenerationStages.entries()) {
+          setGeneratedSummary({ message, stageIndex });
           await delay(750);
         }
 
@@ -1052,7 +1110,9 @@ function App() {
     captureEditChangeUndo();
     setTrip((current) => ({
       ...current,
-      steps: current.steps.map((step, stepIndex) => (stepIndex === index ? { ...step, [field]: value } : step))
+      steps: current.steps.map((step, stepIndex) =>
+        stepIndex === index ? normalizeRouteStep({ ...step, [field]: value }) : step
+      )
     }));
   }
 
@@ -1520,11 +1580,27 @@ function RouteScreen({
 
 function GenerationModal({ summary }) {
   const statusText = summary?.message || (summary?.count ? `已生成 ${summary.count} 个路线节点` : "正在读取攻略…");
+  const activeStageIndex = typeof summary?.stageIndex === "number" ? summary.stageIndex : 0;
+  const isLoading = Boolean(summary?.message && !summary?.count);
 
   return (
     <div className="modal-backdrop generation-modal-backdrop" role="status" aria-live="polite" aria-label="路线生成状态">
       <div className="generation-modal">
         <p>{statusText}</p>
+        {isLoading ? (
+          <div className="generation-stage-list" aria-hidden="true">
+            {routeGenerationStages.map((stage, index) => {
+              const stageState = index < activeStageIndex ? "is-complete" : index === activeStageIndex ? "is-active" : "is-pending";
+
+              return (
+                <div className={`generation-stage ${stageState}`} key={stage}>
+                  <span>{stage}</span>
+                  <i />
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
         {summary?.count && !summary?.message ? (
           <div className="generation-modal-summary">
             {summary.type ? <span>路线类型：{summary.type}</span> : null}

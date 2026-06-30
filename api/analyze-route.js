@@ -6,6 +6,8 @@ const systemPrompt = [
   "你必须只返回严格 JSON，不要 Markdown，不要解释，不要代码块。",
   "只提取路线相关信息，不要编造地点。",
   "routeItems 必须按原攻略中的实际顺序排列。",
+  "routeItems.time 只能填写实际时间点或阶段标记，例如 7:00、8:30、上午、中午、下午、傍晚、起点、终点。",
+  "不要把 15 分钟、约 30 分钟、3-4 小时等耗时放入 routeItems.time；这类耗时必须写进 title，格式为（约耗时xx）。",
   "note 控制在 20 个中文字符以内。",
   "如果信息缺失，使用空字符串或未知。"
 ].join("\n");
@@ -56,6 +58,46 @@ function trimText(value, maxLength) {
     .slice(0, maxLength);
 }
 
+function extractDurationValue(value) {
+  const source = trimText(value, 40)
+    .replace(/[()（）]/g, "")
+    .replace(/^(?:预计|大约|约|大概|耗时|用时|时长|需要)+\s*/, "")
+    .replace(/^(?:预计|大约|约|大概)?\s*(?:耗时|用时|时长|需要)\s*/, "");
+  const durationMatch = source.match(/(\d+(?:\.\d+)?(?:\s*[-~～至到]\s*\d+(?:\.\d+)?)?\s*(?:分钟|分|小时|钟头|h|hr|hrs|min|mins))/i);
+  if (!durationMatch) return "";
+
+  return durationMatch[1]
+    .replace(/\s*([-~～至到])\s*/g, "$1")
+    .replace(/\s+(分钟|分|小时|钟头|h|hr|hrs|min|mins)$/i, "$1")
+    .trim();
+}
+
+function isDurationLabel(value) {
+  return Boolean(extractDurationValue(value));
+}
+
+function formatDurationNote(value) {
+  const durationValue = extractDurationValue(value);
+  return durationValue ? `（约耗时${durationValue}）` : "";
+}
+
+function appendDurationToTitle(title, durationNote) {
+  const normalizedTitle = trimText(title, 80);
+  if (!durationNote) return normalizedTitle;
+  const durationValue = durationNote.replace(/^（约耗时/, "").replace(/）$/, "");
+  if (normalizedTitle.includes(durationNote) || normalizedTitle.includes(`约耗时${durationValue}`)) return normalizedTitle;
+  return trimText(`${normalizedTitle}${durationNote}`, 100);
+}
+
+function normalizeRouteItem(item) {
+  const normalizedItem = { ...item };
+  if (!isDurationLabel(normalizedItem.time)) return normalizedItem;
+
+  normalizedItem.title = appendDurationToTitle(normalizedItem.title, formatDurationNote(normalizedItem.time));
+  normalizedItem.time = "";
+  return normalizedItem;
+}
+
 function normalizeRouteData(routeData) {
   if (!routeData || typeof routeData !== "object") {
     throw new Error("Invalid route data");
@@ -63,12 +105,14 @@ function normalizeRouteData(routeData) {
 
   const routeItems = Array.isArray(routeData.routeItems) ? routeData.routeItems : [];
   const normalizedItems = routeItems
-    .map((item, index) => ({
-      id: trimText(item?.id, 32) || `item-${index + 1}`,
-      time: trimText(item?.time, 24),
-      title: trimText(item?.title, 80),
-      note: trimText(item?.note, 20)
-    }))
+    .map((item, index) =>
+      normalizeRouteItem({
+        id: trimText(item?.id, 32) || `item-${index + 1}`,
+        time: trimText(item?.time, 24),
+        title: trimText(item?.title, 80),
+        note: trimText(item?.note, 20)
+      })
+    )
     .filter((item) => item.title);
 
   if (!normalizedItems.length) {
