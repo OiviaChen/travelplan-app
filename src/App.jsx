@@ -67,7 +67,8 @@ const templateOptions = [
   {
     id: "timeline",
     title: "时间轴路线",
-    subtitle: "适合打印放在手帐本里"
+    subtitle: "适合打印放在手帐本里",
+    disabled: true
   }
 ];
 
@@ -1933,6 +1934,7 @@ function TemplateScreen({ isActive, selectedTemplate, onSelectTemplate, toastMes
             <span>
               <b>{template.title}</b>
               <small>{template.subtitle}</small>
+              {template.disabled ? <em>Soon</em> : null}
             </span>
             <i aria-hidden="true" />
           </button>
