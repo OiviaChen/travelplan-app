@@ -2344,6 +2344,10 @@ body {
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
+.purpose-card {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .purpose-card:not(.is-disabled):hover,
 .template-card:not(.is-disabled):hover {
   border-color: var(--paper-border-strong);
@@ -2838,6 +2842,402 @@ input {
       var(--paper-note);
     box-shadow: var(--paper-shadow-md);
   }
+}
+
+/* E-Ink Local Notes DNA final visual layer. Does not alter layout or small-card rules. */
+:root {
+  --eink-page: #e7eae2;
+  --eink-surface: #eef0ea;
+  --eink-surface-subtle: #dde1d8;
+  --eink-chrome: #d5dad2;
+  --eink-ink: #090a09;
+  --eink-ink-soft: #3d423d;
+  --eink-muted: #6f766d;
+  --eink-faint: #9ba398;
+  --eink-border: #252825;
+  --eink-border-soft: #6d746b;
+  --eink-audio: #737d72;
+  --eink-wine-shadow: #3a0012;
+  --eink-radius-card: 22px;
+  --eink-radius-control: 18px;
+  --eink-radius-pill: 999px;
+  --eink-shadow-card: 3px 4px 0 var(--eink-wine-shadow);
+  --eink-shadow-soft: 2px 3px 0 rgba(58, 0, 18, 0.62);
+  --eink-focus: 0 0 0 3px rgba(58, 0, 18, 0.14);
+  --eink-grain:
+    radial-gradient(circle at 12% 18%, rgba(9, 10, 9, 0.032) 0 1px, transparent 1px 18px),
+    radial-gradient(circle at 86% 42%, rgba(9, 10, 9, 0.022) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(0deg, rgba(9, 10, 9, 0.016) 0 1px, transparent 1px 6px);
+}
+
+html,
+body {
+  background: var(--eink-page);
+  color: var(--eink-ink);
+}
+
+body,
+.app-shell {
+  background:
+    radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.2), transparent 32%),
+    var(--eink-grain),
+    var(--eink-page);
+  color: var(--eink-ink);
+}
+
+.app-header {
+  border-bottom-color: var(--eink-border-soft);
+  background:
+    var(--eink-grain),
+    var(--eink-chrome);
+}
+
+.app-header h1,
+.purpose-title,
+.home-title,
+.route-hero h2,
+.route-detail-heading strong,
+.route-card-preview-copy strong,
+.download-success-modal p,
+.generation-modal p {
+  color: var(--eink-ink);
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.purpose-card,
+.template-card,
+.route-detail-panel,
+.route-card-preview,
+.template-field-panel,
+.preview-card,
+.download-success-modal,
+.generation-modal,
+.route-bottom-sheet {
+  border-color: var(--eink-border);
+  border-radius: var(--eink-radius-card);
+  background:
+    var(--eink-grain),
+    var(--eink-surface);
+  color: var(--eink-ink);
+  box-shadow: var(--eink-shadow-card);
+}
+
+.back-icon-button,
+.progress-segments span,
+.metadata-chips,
+#screen-route .metadata-chips,
+.time-block,
+.route-block,
+.route-item-controls button,
+.template-mode-switcher button,
+.timeline-size-switcher button,
+.primary-button,
+.secondary-button,
+.modal-primary-action,
+.template-toggle-row i {
+  border-color: var(--eink-border);
+  background:
+    var(--eink-grain),
+    var(--eink-surface);
+  color: var(--eink-ink);
+  box-shadow: var(--eink-shadow-soft);
+}
+
+.back-icon-button,
+.primary-button,
+.secondary-button,
+.route-item-controls button,
+.template-mode-switcher button,
+.timeline-size-switcher button,
+.modal-primary-action {
+  border-radius: var(--eink-radius-pill);
+}
+
+.progress-segments span {
+  background: var(--eink-surface-subtle);
+  box-shadow: none;
+}
+
+.progress-segments span.is-active,
+.primary-button,
+.template-mode-switcher button.is-selected {
+  border-color: var(--eink-ink);
+  background: var(--eink-ink);
+  color: var(--eink-surface);
+}
+
+.purpose-card.is-selected,
+.template-card.is-selected,
+.route-list.is-editing .route-block.is-selected,
+.route-workspace .route-list.is-editing .route-block.is-selected,
+.route-list.is-editing .route-row.has-empty-route.is-selected .route-block,
+.route-list.is-editing .route-row.has-empty-route .route-block.is-filling-empty-route {
+  border-color: var(--eink-ink);
+  background:
+    var(--eink-grain),
+    var(--eink-surface-subtle);
+  box-shadow: var(--eink-shadow-card);
+}
+
+.purpose-card small,
+.template-card small,
+.route-detail-heading span,
+.route-card-preview-copy span,
+.status-message,
+.generation-stage,
+.generation-modal-summary,
+.route-block p,
+.route-block textarea,
+.timeline-size-switcher small,
+.preview-route span,
+.preview-route small {
+  color: var(--eink-muted);
+}
+
+.purpose-card i,
+.template-card i {
+  border-color: var(--eink-border-soft);
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 9px, rgba(9, 10, 9, 0.08) 9px 10px),
+    var(--eink-surface-subtle);
+  box-shadow: none;
+}
+
+#sourceText {
+  border-color: var(--eink-border);
+  border-radius: var(--eink-radius-card);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(9, 10, 9, 0.04) 31px 32px),
+    var(--eink-grain),
+    var(--eink-surface);
+  color: var(--eink-ink);
+  box-shadow: var(--eink-shadow-card);
+}
+
+#sourceText::placeholder {
+  color: var(--eink-muted);
+}
+
+.route-detail-panel input,
+.route-detail-panel textarea,
+.route-bottom-sheet input {
+  border-color: var(--eink-border-soft);
+  border-radius: var(--eink-radius-control);
+  background: var(--eink-surface);
+  color: var(--eink-ink);
+}
+
+.route-detail-panel input:focus,
+.route-detail-panel textarea:focus,
+.route-bottom-sheet input:focus,
+#sourceText:focus {
+  border-color: var(--eink-border);
+  box-shadow: var(--eink-focus);
+  outline: none;
+}
+
+.metadata-chips,
+#screen-route .metadata-chips {
+  border-color: var(--eink-border);
+  border-radius: var(--eink-radius-pill);
+  background: var(--eink-surface-subtle);
+  box-shadow: none;
+}
+
+.metadata-chips span,
+#screen-route .metadata-chips span {
+  border-right-color: var(--eink-border-soft);
+  color: var(--eink-muted);
+  letter-spacing: 0.02em;
+}
+
+.time-block {
+  border-radius: var(--eink-radius-control);
+  font-variant-numeric: tabular-nums;
+}
+
+.route-row:nth-of-type(n + 4) .time-block {
+  background:
+    var(--eink-grain),
+    var(--eink-surface-subtle);
+  color: var(--eink-muted);
+}
+
+.route-block {
+  border-radius: var(--eink-radius-control);
+}
+
+.route-list.is-editing .route-block.is-drop-target {
+  outline-color: var(--eink-border-soft);
+  background: var(--eink-surface-subtle);
+}
+
+.primary-button:disabled,
+.secondary-button:disabled,
+.secondary-button.is-disabled,
+.route-item-controls button:disabled,
+.template-mode-switcher button.is-disabled {
+  border-color: var(--eink-border-soft);
+  background: var(--eink-surface-subtle);
+  color: var(--eink-faint);
+  box-shadow: none;
+}
+
+.template-toggle-row i::after {
+  background: var(--eink-muted);
+}
+
+.template-toggle-row input:checked + i {
+  background: var(--eink-ink);
+}
+
+.template-toggle-row input:checked + i::after {
+  background: var(--eink-surface);
+}
+
+.generation-stage i {
+  border-color: var(--eink-border-soft);
+  background: var(--eink-surface-subtle);
+}
+
+.generation-stage i::before {
+  background: var(--eink-ink);
+}
+
+.modal-backdrop,
+.generation-modal-backdrop {
+  background: rgba(231, 234, 226, 0.76);
+  backdrop-filter: none;
+}
+
+.app-shell[data-screen="route"] .app-bottom-bar,
+.app-shell[data-screen="templateEdit"] .app-bottom-bar,
+.app-shell[data-screen="preview"] .app-bottom-bar {
+  border-top-color: rgba(37, 40, 37, 0.16);
+  background:
+    linear-gradient(180deg, rgba(231, 234, 226, 0), var(--eink-page) 22px),
+    var(--eink-page);
+}
+
+@media (min-width: 1100px) {
+  body:has(.app-shell[data-screen="purpose"]),
+  body:has(.app-shell[data-screen="home"]),
+  body:has(.app-shell[data-screen="route"]),
+  body:has(.app-shell[data-screen="templateEdit"]),
+  body:has(.app-shell[data-screen="preview"]) {
+    background:
+      radial-gradient(circle at 76% 22%, rgba(255, 255, 255, 0.14), transparent 26%),
+      var(--eink-grain),
+      var(--eink-page);
+  }
+
+  .app-shell[data-screen="purpose"],
+  .app-shell[data-screen="home"],
+  .app-shell[data-screen="route"],
+  .app-shell[data-screen="templateEdit"],
+  .app-shell[data-screen="preview"] {
+    background:
+      var(--eink-grain),
+      var(--eink-page);
+  }
+
+  .app-shell[data-screen="purpose"] .app-header,
+  .app-shell[data-screen="home"] .app-header,
+  .app-shell[data-screen="route"] .app-header,
+  .app-shell[data-screen="templateEdit"] .app-header,
+  .app-shell[data-screen="preview"] .app-header {
+    border-bottom-color: var(--eink-border-soft);
+    background:
+      var(--eink-grain),
+      var(--eink-chrome);
+  }
+
+  #screen-purpose.is-active,
+  #screen-home.is-active,
+  .route-main-panel,
+  #screen-route .route-hero,
+  #screen-preview > #templatePreview,
+  #screen-preview > .status-message,
+  #screen-template-edit > .template-mode-switcher,
+  #screen-template-edit > .timeline-size-switcher,
+  #screen-template-edit > .template-edit-preview,
+  #screen-template-edit > .template-status,
+  .route-card-preview {
+    border-color: var(--eink-border);
+    background:
+      var(--eink-grain),
+      var(--eink-surface);
+    box-shadow: var(--eink-shadow-card);
+  }
+}
+
+/* Restore the green sticky-note card version. Keep the tab geometry unchanged. */
+.sticky-route-card {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 253, 248, 0.045) 0 1px, transparent 1px 8px),
+    #4f5b43;
+  color: #fffdf8;
+  box-shadow: 0 0 0 1px rgba(255, 253, 248, 0.86);
+}
+
+.sticky-route-card::before {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 253, 248, 0.045) 0 1px, transparent 1px 8px),
+    #4f5b43;
+  z-index: 0;
+  box-shadow: none;
+  filter:
+    drop-shadow(0 -1px 0 rgba(255, 253, 248, 0.86))
+    drop-shadow(1px 0 0 rgba(255, 253, 248, 0.86))
+    drop-shadow(-1px 0 0 rgba(255, 253, 248, 0.86));
+}
+
+.sticky-route-card::after {
+  content: none;
+}
+
+.small-card-field,
+.small-card-text {
+  color: #fffdf8;
+}
+
+.small-card-divider {
+  background: rgba(255, 253, 248, 0.82);
+}
+
+.purpose-card {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.purpose-card i {
+  display: none;
+}
+
+#screen-route .route-hero {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.template-toggle-row i {
+  width: 44px;
+  height: 20px;
+  box-shadow: none;
+}
+
+.template-toggle-row i::after {
+  top: 50%;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+}
+
+.template-toggle-row input:checked + i::after {
+  transform: translate(24px, -50%);
 }
 
 @media (prefers-reduced-motion: reduce) {

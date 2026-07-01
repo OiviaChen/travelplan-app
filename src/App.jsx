@@ -695,8 +695,8 @@ const routeCardExportBase = {
   routeGap: 40,
   metaGap: 16,
   dividerHeight: 1,
-  background: "#dadada",
-  text: "#000"
+  background: "#4f5b43",
+  text: "#fffdf8"
 };
 
 const printExportSize = {
@@ -2282,10 +2282,10 @@ function BottomBar({ screen, onDownloadA4, onDownloadCard, onGoToScreen }) {
       </div>
       <div className={`button-row two-up ${actionKey === "preview" ? "is-active" : ""}`} data-actions-for="preview">
         <button className="secondary-button is-disabled" id="downloadA4Button" type="button" aria-disabled="true" onClick={onDownloadA4}>
-          A4打印版
+          下载 A4 打印版
         </button>
         <button className="primary-button" id="downloadCardButton" type="button" onClick={onDownloadCard}>
-          下载小卡
+          保存小卡
         </button>
       </div>
     </footer>
